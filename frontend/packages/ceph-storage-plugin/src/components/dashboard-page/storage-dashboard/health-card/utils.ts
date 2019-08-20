@@ -33,14 +33,14 @@ export const getCephHealthState = (ocsResponse): CephHealth => {
 export const processCephHealthState = (cephHealthState, cephClusterData) : CephHealth =>{
   const cephClusterName =getName(_.get(cephClusterData, 0));
   if (cephHealthState.state == HealthState.LOADING) {
-    return cephHealthState;
+    return {...cephHealthState};
   }
-  else if (!cephClusterName){
-    cephHealthState.message = "Openshift Storage "+cephHealthState.message;
-    return cephHealthState;
+  if (!cephClusterName){
+    return {...cephHealthState, message : "Openshift Storage "+cephHealthState.message};
   }
-  cephHealthState.message = cephClusterName+" "+cephHealthState.message;
-  return cephHealthState;
+  else {
+    return {...cephHealthState, message:cephClusterName+" "+cephHealthState.message};
+  }
 }; 
 
 

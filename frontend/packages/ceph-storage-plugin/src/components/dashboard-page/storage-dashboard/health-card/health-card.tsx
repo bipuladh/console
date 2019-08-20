@@ -63,10 +63,7 @@ const HealthCard: React.FC<DashboardItemProps> = ({
   const cephCluster = _.get(resources, 'ceph');
   const cephClusterData = _.get(cephCluster, 'data') as K8sResourceKind[];
   const rawCephHealthState = getCephHealthState(queryResult);
-  console.log(rawCephHealthState);
   const cephHealthState = processCephHealthState(rawCephHealthState, cephClusterData);
-  // console.log(cephHealthState);
-
   const alerts = filterCephAlerts(getAlerts(alertsResults));
 
   return (
