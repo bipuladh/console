@@ -1,4 +1,6 @@
 import * as React from 'react';
+import * as _ from 'lodash';
+
 import {
   AlertsBody,
   AlertItem,
@@ -15,9 +17,21 @@ import {
 import { HealthBody } from '@console/internal/components/dashboard/health-card/health-body';
 import { HealthItem } from '@console/internal/components/dashboard/health-card/health-item';
 import { HealthState } from '@console/internal/components/dashboard/health-card/states';
+import { K8sResourceKind, referenceForModel } from '@console/internal/module/k8s';
 import { STORAGE_HEALTH_QUERIES, StorageDashboardQuery } from '../../../../constants/queries';
 import { filterCephAlerts } from '../../../../selectors';
-import { getCephHealthState } from './utils';
+import { getCephHealthState, processCephHealthState } from './utils';
+import { FirehoseResource } from '@console/internal/components/utils';
+import { CephClusterModel } from '../../../../models';
+import { CEPH_STORAGE_NAMESPACE } from '../../../../constants/index';
+
+const cephClusterResource: FirehoseResource = {
+  kind: referenceForModel(CephClusterModel),
+  namespaced: true,
+  namespace: CEPH_STORAGE_NAMESPACE,
+  isList: true,
+  prop: 'ceph',
+};
 
 const HealthCard: React.FC<DashboardItemProps> = ({
   watchPrometheus,
@@ -26,22 +40,33 @@ const HealthCard: React.FC<DashboardItemProps> = ({
   watchAlerts,
   stopWatchAlerts,
   alertsResults,
+  resources,
+  watchK8sResource,
+  stopWatchK8sResource,
 }) => {
   React.useEffect(() => {
     watchAlerts();
+    watchK8sResource(cephClusterResource);
     watchPrometheus(STORAGE_HEALTH_QUERIES[StorageDashboardQuery.CEPH_STATUS_QUERY]);
     return () => {
       stopWatchAlerts();
+      stopWatchK8sResource(cephClusterResource);
       stopWatchPrometheusQuery(STORAGE_HEALTH_QUERIES[StorageDashboardQuery.CEPH_STATUS_QUERY]);
     };
-  }, [watchPrometheus, stopWatchPrometheusQuery, watchAlerts, stopWatchAlerts]);
+  }, [watchK8sResource, stopWatchK8sResource,watchPrometheus, stopWatchPrometheusQuery, watchAlerts, stopWatchAlerts]);
 
   const queryResult = prometheusResults.getIn([
     STORAGE_HEALTH_QUERIES[StorageDashboardQuery.CEPH_STATUS_QUERY],
     'result',
   ]);
 
-  const cephHealthState = getCephHealthState(queryResult);
+  const cephCluster = _.get(resources, 'ceph');
+  const cephClusterData = _.get(cephCluster, 'data') as K8sResourceKind[];
+  const rawCephHealthState = getCephHealthState(queryResult);
+  console.log(rawCephHealthState);
+  const cephHealthState = processCephHealthState(rawCephHealthState, cephClusterData);
+  // console.log(cephHealthState);
+
   const alerts = filterCephAlerts(getAlerts(alertsResults));
 
   return (
