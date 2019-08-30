@@ -22,6 +22,6 @@ export const CSVModel: K8sKind = {
   abbr: 'ocs',
   namespaced: true,
   kind: 'ClusterServiceVersion',
-//  id: 'ocscluster',
+  //  id: 'ocscluster',
   crd: true,
 };

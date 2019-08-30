@@ -30,7 +30,6 @@ const CSVResource: FirehoseResource = {
   prop: 'csv',
 };
 
-
 const infrastructureResource: FirehoseResource = {
   kind: referenceForModel(InfrastructureModel),
   namespaced: false,

@@ -15,17 +15,9 @@ import { InfrastructureModel } from '@console/internal/models/index';
 import { K8sResourceKind } from '@console/internal/module/k8s/index';
 import { getName } from '@console/shared/src/selectors/common';
 import { referenceForModel } from '@console/internal/module/k8s/k8s';
-import {
-  CephClusterModel,
-  CSVModel,
-} from '../../../models';
-import {
-  CEPH_STORAGE_NAMESPACE,
-  OCS_NAMESPACE,
-} from '../../../constants/index';
-import {getOCSOperatorVersion,
-  getInfrastructurePlatform,
-} from '../../../util';
+import { CephClusterModel, CSVModel } from '../../../models';
+import { CEPH_STORAGE_NAMESPACE, OCS_NAMESPACE } from '../../../constants/index';
+import { getOCSOperatorVersion, getInfrastructurePlatform } from '../../../util';
 
 const CSVResource: FirehoseResource = {
   kind: referenceForModel(CSVModel),
