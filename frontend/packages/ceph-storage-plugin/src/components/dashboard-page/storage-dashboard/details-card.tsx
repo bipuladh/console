@@ -15,14 +15,24 @@ import { InfrastructureModel } from '@console/internal/models/index';
 import { K8sResourceKind } from '@console/internal/module/k8s/index';
 import { getName } from '@console/shared/src/selectors/common';
 import { referenceForModel } from '@console/internal/module/k8s/k8s';
-import { CephClusterModel } from '../../../models';
-import { CEPH_STORAGE_NAMESPACE } from '../../../constants/index';
+import {
+  CephClusterModel,
+  CSVModel,
+} from '../../../models';
+import {
+  CEPH_STORAGE_NAMESPACE,
+  OCS_NAMESPACE,
+} from '../../../constants/index';
+import {getOCSOperatorVersion,
+  getInfrastructurePlatform,
+} from '../../../util';
 
-const getInfrastructurePlatform = (infrastructure: K8sResourceKind): string =>
-  _.get(infrastructure, 'status.platform');
-
-const getCephVersion = (cephCluster: K8sResourceKind): string =>
-  _.get(cephCluster, 'spec.cephVersion.image');
+const CSVResource: FirehoseResource = {
+  kind: referenceForModel(CSVModel),
+  namespaced: true,
+  namespace: OCS_NAMESPACE,
+  prop: 'csv',
+};
 
 const infrastructureResource: FirehoseResource = {
   kind: referenceForModel(InfrastructureModel),
@@ -48,9 +58,11 @@ const DetailsCard: React.FC<DashboardItemProps> = ({
   React.useEffect(() => {
     watchK8sResource(cephClusterResource);
     watchK8sResource(infrastructureResource);
+    watchK8sResource(CSVResource);
     return () => {
       stopWatchK8sResource(cephClusterResource);
       stopWatchK8sResource(infrastructureResource);
+      stopWatchK8sResource(CSVResource);
     };
   }, [watchK8sResource, stopWatchK8sResource]);
 
@@ -61,6 +73,10 @@ const DetailsCard: React.FC<DashboardItemProps> = ({
   const cephCluster = _.get(resources, 'ceph');
   const cephClusterLoaded = _.get(cephCluster, 'loaded', false);
   const cephClusterData = _.get(cephCluster, 'data') as K8sResourceKind[];
+
+  const csv = _.get(resources, 'csv');
+  const csvLoaded = _.get(csv, 'loaded', false);
+  const ocsOperatorVersion = getOCSOperatorVersion(resources);
 
   return (
     <DashboardCard>
@@ -89,9 +105,9 @@ const DetailsCard: React.FC<DashboardItemProps> = ({
           />
           <DetailItem
             key="version"
-            title="Version"
-            value={getCephVersion(_.get(cephClusterData, 0))}
-            isLoading={!cephClusterLoaded}
+            title="OCS Version"
+            value={ocsOperatorVersion}
+            isLoading={!csvLoaded}
           />
         </DetailsBody>
       </DashboardCardBody>

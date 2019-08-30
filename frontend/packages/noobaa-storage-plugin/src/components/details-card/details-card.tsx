@@ -14,24 +14,22 @@ import {
 import { FirehoseResource } from '@console/internal/components/utils';
 import { InfrastructureModel } from '@console/internal/models';
 import { referenceForModel, K8sResourceKind } from '@console/internal/module/k8s';
-import { CephClusterModel } from '../../../../ceph-storage-plugin/src/models';
-
-const getInfrastructurePlatform = (infrastructure: K8sResourceKind): string =>
-  _.get(infrastructure, 'status.platform');
-
-const getCephVersion = (cephCluster: K8sResourceKind): string =>
-  _.get(cephCluster, 'spec.cephVersion.image');
+import { CSVModel } from '../../../../ceph-storage-plugin/src/models';
+import { OCS_NAMESPACE } from '../../../../ceph-storage-plugin/src/constants/index';
+import {
+  getInfrastructurePlatform,
+  getOCSOperatorVersion,
+} from '../../../../ceph-storage-plugin/src/util';
 
 const NOOBAA_SYSTEM_NAME_QUERY = 'NooBaa_system_info';
 
-const cephClusterResource: FirehoseResource = {
-  kind: referenceForModel(CephClusterModel),
+const CSVResource: FirehoseResource = {
+  kind: referenceForModel(CSVModel),
   namespaced: true,
-  namespace: 'openshift-storage',
-  name: 'rook-ceph',
-  isList: false,
-  prop: 'ceph',
+  namespace: OCS_NAMESPACE,
+  prop: 'csv',
 };
+
 
 const infrastructureResource: FirehoseResource = {
   kind: referenceForModel(InfrastructureModel),
@@ -50,11 +48,11 @@ export const ObjectServiceDetailsCard: React.FC<DashboardItemProps> = ({
   resources,
 }) => {
   React.useEffect(() => {
-    watchK8sResource(cephClusterResource);
+    watchK8sResource(CSVResource);
     watchK8sResource(infrastructureResource);
     watchPrometheus(NOOBAA_SYSTEM_NAME_QUERY);
     return () => {
-      stopWatchK8sResource(cephClusterResource);
+      stopWatchK8sResource(CSVResource);
       stopWatchK8sResource(infrastructureResource);
       stopWatchPrometheusQuery(NOOBAA_SYSTEM_NAME_QUERY);
     };
@@ -68,9 +66,9 @@ export const ObjectServiceDetailsCard: React.FC<DashboardItemProps> = ({
   const infrastructureLoaded = _.get(infrastructure, 'loaded', false);
   const infrastructureData = _.get(infrastructure, 'data') as K8sResourceKind;
 
-  const cephCluster = _.get(resources, 'ceph');
-  const cephClusterLoaded = _.get(cephCluster, 'loaded', false);
-  const cephClusterData = _.get(cephCluster, 'data') as K8sResourceKind;
+  const csv = _.get(resources, 'csv');
+  const csvLoaded = _.get(csv, 'loaded', false);
+  const ocsOperatorVersion = getOCSOperatorVersion(resources);
 
   return (
     <DashboardCard>
@@ -100,8 +98,8 @@ export const ObjectServiceDetailsCard: React.FC<DashboardItemProps> = ({
           <DetailItem
             key="version"
             title="Version"
-            value={getCephVersion(cephClusterData)}
-            isLoading={!cephClusterLoaded}
+            value={ocsOperatorVersion}
+            isLoading={!csvLoaded}
           />
         </DetailsBody>
       </DashboardCardBody>

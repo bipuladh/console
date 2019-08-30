@@ -12,3 +12,16 @@ export const CephClusterModel: K8sKind = {
   id: 'cephcluster',
   crd: true,
 };
+
+export const CSVModel: K8sKind = {
+  label: 'ocs-operator',
+  labelPlural: 'OCS Operators',
+  apiVersion: 'v1alpha1',
+  apiGroup: 'operators.coreos.com',
+  plural: 'ocs-operators',
+  abbr: 'ocs',
+  namespaced: true,
+  kind: 'ClusterServiceVersion',
+//  id: 'ocscluster',
+  crd: true,
+};

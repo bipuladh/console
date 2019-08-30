@@ -12,3 +12,4 @@ export const PODS = 'Pods';
 export const VMS = 'VMs';
 export const BY_USED = 'By Used Capacity';
 export const BY_REQUESTED = 'By Requested Capacity';
+export const OCS_NAMESPACE = 'openshift-storage';
