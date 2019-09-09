@@ -51,3 +51,16 @@ export const NooBaaObjectBucketClaimModel: K8sKind = {
   id: 'noobaaobjectbucketclaims',
   crd: true,
 };
+
+export const NooBaaObjectBucketModel: K8sKind = {
+  label: 'Object Bucket',
+  labelPlural: 'Object Buckets',
+  apiVersion: 'v1alpha1',
+  apiGroup: 'objectbucket.io',
+  plural: 'objectbuckets',
+  abbr: 'OB',
+  namespaced: true,
+  kind: 'ObjectBucket',
+  id: 'objectbucket',
+  crd: true,
+}

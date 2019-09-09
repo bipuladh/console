@@ -119,6 +119,7 @@ const AdminNav = () => (
       <ResourceClusterLink resource="persistentvolumes" name="Persistent Volumes" required={FLAGS.CAN_LIST_PV} />
       <ResourceNSLink resource="persistentvolumeclaims" name="Persistent Volume Claims" />
       <ResourceClusterLink resource="storageclasses" name="Storage Classes" />
+      <ResourceClusterLink resource="objectbuckets" name="Object Buckets" />
     </NavSection>
 
     <NavSection title="Builds" required={FLAGS.OPENSHIFT}>
