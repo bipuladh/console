@@ -14,6 +14,7 @@ import {
   ResourceSummary,
   SectionHeading,
 } from './utils';
+import { connectToModel } from '../kinds';
 
 const { common } = Kebab.factory;
 const menuActions = [...Kebab.getExtensionsActionsForKind(), ...common];
@@ -92,7 +93,7 @@ export const DefaultList = props => {
 DefaultList.displayName = DefaultList;
 
 export const DefaultPage = props =>
-  <ListPage {...props} ListComponent={DefaultList} canCreate={props.canCreate || _.get(kindObj(props.kind), 'crd')} />;
+  <ListPage {...props} ListComponent={DefaultList} canCreate={props.canCreate || _.get(connectToModel(props.kind), 'crd')} />;
 DefaultPage.displayName = 'DefaultPage';
 
 

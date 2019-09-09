@@ -1,4 +1,4 @@
-import { K8sKind } from '@console/internal/module/k8s';
+import { K8sKind, CustomResourceDefinitionKind } from '@console/internal/module/k8s';
 
 export const NooBaaSystemModel: K8sKind = {
   label: 'NooBaa System',
@@ -45,10 +45,10 @@ export const NooBaaObjectBucketClaimModel: K8sKind = {
   apiVersion: 'v1alpha1',
   apiGroup: 'objectbucket.io',
   plural: 'objectbucketclaims',
-  abbr: 'NOBC',
+  abbr: 'obc',
   namespaced: true,
   kind: 'ObjectBucketClaim',
-  id: 'noobaaobjectbucketclaims',
+  id: 'objectbucketclaims',
   crd: true,
 };
 
