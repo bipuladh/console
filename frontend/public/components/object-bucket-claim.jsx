@@ -48,7 +48,7 @@ const OBCTableHeader = () => {
 };
 OBCTableHeader.displayName = 'OBCTableHeader';
 
-const kind = 'ObjectBucketClaim';
+const kind = referenceForModel(NooBaaObjectBucketClaimModel);
 
 const OBCTableRow = ({obj, index, key, style}) => {
   return (
@@ -68,6 +68,7 @@ const OBCTableRow = ({obj, index, key, style}) => {
     </TableRow>
   );
 };
+
 OBCTableRow.displayName = 'OBCTableRow';
 
 const Details = ({flags, obj}) => {
@@ -100,7 +101,7 @@ const Details = ({flags, obj}) => {
 export const ObjectBucketClaimsList = props => <Table {...props} aria-label="Object Bucket Claims" Header={OBCTableHeader} Row={OBCTableRow}
   virtualize />;
 
-export const ObjectBucketClaimsPage: React.SFC<> = props => {
+export const ObjectBucketClaimsPage = props => {
   const createProps = {
     to: `/objectbucket.io/v1alpha1/ns/${props.namespace || 'default'}/objectbucketclaims/~new/form`,
   };

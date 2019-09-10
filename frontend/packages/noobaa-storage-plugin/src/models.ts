@@ -1,4 +1,4 @@
-import { K8sKind, CustomResourceDefinitionKind } from '@console/internal/module/k8s';
+import { K8sKind } from '@console/internal/module/k8s';
 
 export const NooBaaSystemModel: K8sKind = {
   label: 'NooBaa System',
