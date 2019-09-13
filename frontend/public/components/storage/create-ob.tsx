@@ -13,47 +13,31 @@ import {
 import { StorageClassDropdown } from '../utils/storage-class-dropdown';
 import { NooBaaObjectBucketModel } from '@console/noobaa-storage-plugin/src/models';
 
-export const CreateOBPage:React.FC<CreateOBFormProps> = (props) =>{
-  const [obName, obNameSetter ] = React.useState('');
-  const [storageClass, SCSetter ] = React.useState('');
-  const [error, setError] = React.useState('');
-  const [inProgress,setProgress ] = React.useState(false);
-  const [obObj, setObObj] = React.useState({});
+export class CreateOBPage_ extends React.Component {
+  state = {
+    storageClass: '',
+    obName:'',
+    obObj:null,
+    inProgress: false,
+    error: '',
 
+  };
 
-  const handleChange: React.ReactEventHandler<HTMLInputElement> = event => {
-    // this handles pvcName, accessMode, size
+  handleChange: React.ReactEventHandler<HTMLInputElement> = event => {
     const { name, value } = event.currentTarget;
-    if (name == 'obName'){
-      obNameSetter(value);
-    }
-    else if(name == 'storageClass'){
-      SCSetter(value);
-    }
-    setObObj(updateOB());
+    this.setState({[name]:value} as any, this.onChange);
   };
 
-  const handleStorageClass = storageClass => {
-    SCSetter(_.get(storageClass,'metadata.name'));
-    setObObj(updateOB());
-  };
+  handleStorageClass = storageClass => {
+    this.setState({ storageClass:_.get(storageClass,'metadata.name')}, this.onChange);
+  }
 
-  const save = (e: React.FormEvent<EventTarget>) => {
-    e.preventDefault();
-    setProgress(true);
-    k8sCreate(NooBaaObjectBucketModel, obObj).then(
-      resource => {
-        setProgress(false);
-        history.push(resourceObjPath(resource, referenceFor(resource)));
-      },
-      err =>{
-        setError(err.message);
-        setProgress(false);
-      } 
-    );
-  };
+  onChange = () => {
+    this.updateOB();
+  }
 
-  const updateOB = () => {
+  updateOB = () => {
+    const { storageClass, obName} = this.state;
     const obj: K8sResourceKind = {
       apiVersion: 'objectbucket.io/v1alpha1',
       kind: 'ObjectBucket',
@@ -61,13 +45,30 @@ export const CreateOBPage:React.FC<CreateOBFormProps> = (props) =>{
         name: obName,
       },
       spec:{}
-    }
+    };
     if (storageClass) {
       obj.spec.storageClassName = storageClass;
     }
+    this.setState({obObj:obj});
     return obj;
   };
 
+  save = (e: React.FormEvent<EventTarget>) => {
+    e.preventDefault();
+    this.setState({ inProgress: true });
+    k8sCreate(NooBaaObjectBucketModel, this.state.obObj).then(
+      resource => {
+        this.setState({ inProgress: false });
+        history.push(resourceObjPath(resource, referenceFor(resource)));
+      },
+      err =>{
+        this.setState({error: err.message, inProgress: false});
+      } 
+    );
+  };
+
+  render(){
+    const { error, inProgress } = this.state;
     return (
       <div className="co-m-pane__body co-m-pane__form">
         <Helmet>
@@ -81,7 +82,7 @@ export const CreateOBPage:React.FC<CreateOBFormProps> = (props) =>{
             <Link to={`/k8s/cluster/objectbuckets/~new`} id="yaml-link" replace>Edit YAML</Link>
           </div>
         </h1>
-        <form className="co-m-pane__body-group" onSubmit={save}>
+        <form className="co-m-pane__body-group" onSubmit={this.save}>
             <div>
               <div className="form-group">
               <label className="control-label co-required" htmlFor="ob-name">
@@ -91,7 +92,7 @@ export const CreateOBPage:React.FC<CreateOBFormProps> = (props) =>{
                 <input
                   className="pf-c-form-control"
                   type="text"
-                  onChange={handleChange}
+                  onChange={this.handleChange}
                   placeholder="my-object-bucket"
                   aria-describedby="ob-name-help"
                   id="ob-name"
@@ -105,11 +106,12 @@ export const CreateOBPage:React.FC<CreateOBFormProps> = (props) =>{
               </div>
               <div className="form-group">
                 <StorageClassDropdown
-                  onChange={handleStorageClass}
+                  onChange={this.handleStorageClass}
                   id="storageclass-dropdown"
                   describedBy="hide_storage_class_default_help"
                   required={true}
                   name="storageClass"
+
                 />
                 <p className="help-block" id="ob-name-help">
                   Defines the object-store service and the bucket provisioner.
@@ -138,23 +140,7 @@ export const CreateOBPage:React.FC<CreateOBFormProps> = (props) =>{
 
     );
   }
+}
 
-export type StorageClassDropdownProps = {
-  namespace: string;
-  selectedKey: string;
-  required: boolean;
-  onChange: (string) => void;
-  id: string;
-  name: string;
-  placeholder?: string;
-};
 
-export type CreateOBFormProps = {
-  namespace: string;
-  onChange: Function;
-};
-
-export type CreateOBFormState = {
-  storageClass: string;
-  obName: string;
-};
+export const CreateOBPage = () => { return <CreateOBPage_ /> };

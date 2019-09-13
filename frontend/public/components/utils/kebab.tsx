@@ -150,7 +150,7 @@ const kebabFactory: KebabFactory = {
     accessReview: asAccessReview(kind, obj, 'patch')
   }),
   ConfirmDelete: (kind, obj) => ({
-    label: 'Delete',
+    label: `Delete ${kind.label}`,
     callback: () => confirmDeleteModal({
       kind,
       resource: obj,

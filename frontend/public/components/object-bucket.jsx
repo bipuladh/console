@@ -2,39 +2,39 @@ import * as React from 'react';
 import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
 import * as classNames from 'classnames';
-
 import { Status } from '@console/shared';
 import { Conditions } from './conditions';
 import { DetailsPage, ListPage, Table, TableRow, TableData } from './factory';
 import { Kebab, navFactory, ResourceKebab, SectionHeading, ResourceLink, ResourceSummary, Selector } from './utils';
 import { ResourceEventStream } from './events';
-import { NooBaaObjectBucketModel } from '@console/noobaa-storage-plugin/src/models';
+import { NooBaaObjectBucketModel, NooBaaObjectBucketClaimModel } from '@console/noobaa-storage-plugin/src/models';
 import { connectToModel } from '../kinds';
 import { referenceForModel } from '../module/k8s';
 
-const { common, } = Kebab.factory;
+const {common} = Kebab.factory;
+const kind = referenceForModel(NooBaaObjectBucketModel);
+
 const menuActions = [
   ...common,
 ];
 
-export const obPhase = ob => {
+/*Check yaml to see why I am using this? Will remove when the issue is resolved.*/
+const obPhase = ob => {
   let phase = _.get(ob,'status.phase');
   phase = phase ?  phase.charAt(0).toUpperCase() + phase.substring(1) : 'Lost';
   return phase;
 }
 
 const OBStatus = ({ob}) => {
-  let phase = _.get(ob,'status.phase');
-  phase = phase ?  phase.charAt(0).toUpperCase() + phase.substring(1) : 'Lost';
+  let phase = obPhase(ob);
   return <Status status={phase} />;
 }
 
 const tableColumnClasses = [
-  classNames('col-lg-2', 'col-md-2', 'col-sm-4', 'col-xs-6'),
-  classNames('col-lg-2', 'col-md-2', 'col-sm-4', 'col-xs-6'),
-  classNames('col-lg-2', 'col-md-2', 'col-sm-4', 'hidden-xs'),
-  classNames('col-lg-3', 'col-md-3', 'hidden-sm', 'hidden-xs'),
-  classNames('col-lg-3', 'col-md-3', 'hidden-sm', 'hidden-xs'),
+  classNames('col-lg-4', 'col-md-4', 'col-sm-6', 'col-xs-6'),
+  classNames('col-lg-3', 'col-md-3', 'col-sm-6', 'hidden-xs'),
+  classNames('col-lg-4', 'col-md-4', 'hidden-sm', 'hidden-xs'),
+  classNames('col-lg-1', 'col-md-1', 'hidden-sm', 'hidden-xs'),
   Kebab.columnClass,
 ];
 
@@ -46,20 +46,18 @@ const OBTableHeader = () => {
     },
     {
       title: 'Status', sortField: 'status.phase', transforms: [sortable],
-      props: { className: tableColumnClasses[2] },
+      props: { className: tableColumnClasses[1] },
     },
     {
       title: 'Storage Class', sortField: 'spec.storageClassName', transforms: [sortable],
-      props: { className: tableColumnClasses[4] },
+      props: { className: tableColumnClasses[2] },
     },
     {
-      title: '', props: { className: tableColumnClasses[5] },
+      title: '', props: { className: tableColumnClasses[3] },
     },
   ];
 };
 OBTableHeader.displayName = 'OBTableHeader';
-
-const kind = referenceForModel(NooBaaObjectBucketModel);
 
 const OBTableRow = ({obj, index, key, style}) => {
   return (
@@ -67,40 +65,42 @@ const OBTableRow = ({obj, index, key, style}) => {
       <TableData className={tableColumnClasses[0]}>
         <ResourceLink kind={kind} name={obj.metadata.name} namespace={obj.metadata.namespace} title={obj.metadata.name} />
       </TableData>
-      <TableData className={classNames(tableColumnClasses[2])}>
+      <TableData className={classNames(tableColumnClasses[1])}>
         <OBStatus ob={obj} />
       </TableData>
-      <TableData className={tableColumnClasses[4]}>
+      <TableData className={tableColumnClasses[2]}>
         {_.get(obj, 'spec.storageClassName', '-')}
       </TableData>
-      <TableData className={tableColumnClasses[5]}>
+      <TableData className={tableColumnClasses[3]}>
         <ResourceKebab actions={menuActions} kind={kind} resource={obj} />
       </TableData>
     </TableRow>
   );
 };
-
 OBTableRow.displayName = 'OBTableRow';
 
 const Details = ({flags, obj}) => {
-  const labelSelector = _.get(obj, 'spec.selector');
   const storageClassName = _.get(obj, 'spec.storageClassName');
+  const [OBCName, OBCNamespace] = [_.get(obj, 'spec.claimRef.name'), _.get(obj,'spec.claimRef.namespace')];
   return <React.Fragment>
     <div className="co-m-pane__body">
-      <SectionHeading text="ObjectBucketClaim Overview" />
+      <SectionHeading text="Objec tBucket Overview" />
       <div className="row">
         <div className="col-sm-6">
-          <ResourceSummary resource={obj}>
-            <dt>Label Selector</dt>
-            <dd><Selector selector={labelSelector} kind="ObjectBucket" /></dd>
-          </ResourceSummary>
+          <ResourceSummary resource={obj}/>
         </div>
         <div className="col-sm-6">
           <dl>
+            <dt>Status</dt>
+            <dd>
+              <OBStatus ob={obj} />
+            </dd>
             <dt>Storage Class</dt>
             <dd>
               {storageClassName ? <ResourceLink kind="StorageClass" name={storageClassName} /> : '-'}
             </dd>
+            <dt>Object Bucket Claim</dt>
+            <dd><ResourceLink kind={referenceForModel(NooBaaObjectBucketClaimModel)} name={OBCName} namespace={OBCNamespace} /></dd>
           </dl>
         </div>
       </div>
@@ -111,7 +111,7 @@ const Details = ({flags, obj}) => {
 
 const allPhases = [ 'Pending', 'Bound', 'Lost' ];
 const filters = [{
-  type: 'ob-status',
+  type:'ob-status',
   selected: allPhases,
   reducer: obPhase,
   items: _.map(allPhases, phase => ({

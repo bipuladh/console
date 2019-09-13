@@ -13,18 +13,9 @@ class ConfirmDeleteModal extends PromiseComponent {
     this._submit = this._submit.bind(this);
     this._cancel = this.props.cancel.bind(this);
     this.state = Object.assign(this.state, {
-      inputField:'',
       inputMatch:false,
     });
-    this.checkInputMatch = this.checkInputMatch.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
-  }
-
-  checkInputMatch(){
-   if (this.state.inputField == this.props.resource.metadata.name) {
-     return true;
-   }
-   else return false;
   }
 
   _submit(event) {
@@ -36,7 +27,8 @@ class ConfirmDeleteModal extends PromiseComponent {
   }
 
   handleInputChange(val) {
-    this.setState({inputField:val});
+    const isInputMatch = (val == this.props.resource.metadata.name) ? true : false;
+    this.setState({inputMatch:isInputMatch});
   }
 
   render() {
@@ -66,7 +58,7 @@ class ConfirmDeleteModal extends PromiseComponent {
               </div>
         </div>
       </ModalBody>
-      <ModalSubmitFooter submitDisabled={this.state.inputMatch}  errorMessage={this.state.errorMessage} inProgress={this.state.inProgress} submitDanger submitText={this.props.btnText || 'Delete'} cancel={this._cancel} />
+      <ModalSubmitFooter submitDisabled={!this.state.inputMatch}  errorMessage={this.state.errorMessage} inProgress={this.state.inProgress} submitDanger submitText={this.props.btnText || 'Delete'} cancel={this._cancel} />
     </form>;
   }
 }
