@@ -19,7 +19,7 @@ import {
   MachineModel,
   MachineSetModel,
 } from '../../models';
-import { NooBaaObjectBucketClaimModel } from '@console/noobaa-storage-plugin/src/models';
+import { NooBaaObjectBucketClaimModel, NooBaaObjectBucketModel } from '@console/noobaa-storage-plugin/src/models';
 import { referenceForModel } from '../../module/k8s';
 import { ExternalLink, HrefLink, ResourceNSLink, ResourceClusterLink } from './items';
 import { NavSection } from './section';
@@ -120,6 +120,7 @@ const AdminNav = () => (
       <ResourceNSLink resource="persistentvolumeclaims" name="Persistent Volume Claims" />
       <ResourceClusterLink resource="storageclasses" name="Storage Classes" />
       <ResourceNSLink model={NooBaaObjectBucketClaimModel} resource={NooBaaObjectBucketClaimModel.plural} name="Object Bucket Claims" />
+      <ResourceClusterLink model={NooBaaObjectBucketModel} resource={NooBaaObjectBucketModel.plural} name="Object Buckets" />
     </NavSection>
 
     <NavSection title="Builds" required={FLAGS.OPENSHIFT}>

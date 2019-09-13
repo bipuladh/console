@@ -3,6 +3,7 @@ import { Map as ImmutableMap } from 'immutable';
 import { GroupVersionKind, referenceForModel } from '../module/k8s';
 import * as k8sModels from '../models';
 import * as plugins from '../plugins';
+import {NooBaaObjectBucketModel, NooBaaObjectBucketClaimModel} from '@console/noobaa-storage-plugin/src/models';
 
 /**
  * Sample YAML manifests for some of the statically-defined Kubernetes models.
@@ -831,6 +832,24 @@ metadata:
 spec:
   hrefTemplate: 'https://example.com/logs?resourceName=\${resourceName}&containerName=\${containerName}&resourceNamespace=\${resourceNamespace}&podLabels=\${podLabels}'
   text: Example Logs
+`).setIn([referenceForModel(NooBaaObjectBucketModel), 'default'],`
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucket
+metadata:
+  name: example
+spec:
+  storageClassName: openshift-storage-storage-class
+  reclaimPolicy: Delete
+`).setIn([referenceForModel(NooBaaObjectBucketClaimModel), 'default'],`
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: example
+  namespace: openshift-storage
+spec:
+  storageClassName: openshift-storage-storage-class
+  ssl: false
+  versioned: false
 `);
 
 const pluginTemplates = ImmutableMap<GroupVersionKind, ImmutableMap<string, string>>()

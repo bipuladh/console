@@ -68,3 +68,9 @@ export const removeVolumeModal = (props) => import('./remove-volume-modal' /* we
 
 export const configureMachineAutoscalerModal = (props) => import('./configure-machine-autoscaler-modal' /* webpackChunkName: "configure-machine-autoscaler-modal" */)
   .then(m => m.configureMachineAutoscalerModal(props));
+
+export const attachPodsToOBCModal = (props) => import('./attch-pod-obc-modal' /* webpackChunkName: "attach-pod-obc-modal" */)
+  .then(m => m.attachPodsToOBCModal(props));
+
+export const confirmDeleteModal = (props) => import('./delete-confirm-modal' /*wepackChunkName: "delete-confirm-modal" */)
+  .then(m => m.confirmDeleteModal(props));

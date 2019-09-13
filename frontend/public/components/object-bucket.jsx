@@ -4,22 +4,37 @@ import { sortable } from '@patternfly/react-table';
 import * as classNames from 'classnames';
 
 import { Status } from '@console/shared';
+import { Conditions } from './conditions';
 import { DetailsPage, ListPage, Table, TableRow, TableData } from './factory';
-import { Kebab, LabelList, navFactory, ResourceKebab, SectionHeading, ResourceLink, ResourceSummary, Timestamp } from './utils';
-import { PersistentVolumeModel } from '../models';
-import {NooBaaObjectBucketModel} from '@console/noobaa-storage-plugin/src/models';
+import { Kebab, navFactory, ResourceKebab, SectionHeading, ResourceLink, ResourceSummary, Selector } from './utils';
+import { ResourceEventStream } from './events';
+import { NooBaaObjectBucketModel } from '@console/noobaa-storage-plugin/src/models';
+import { connectToModel } from '../kinds';
+import { referenceForModel } from '../module/k8s';
 
-const { common } = Kebab.factory;
-const menuActions = [...Kebab.getExtensionsActionsForKind(PersistentVolumeModel), ...common];
+const { common, } = Kebab.factory;
+const menuActions = [
+  ...common,
+];
 
-const PVStatus = ({pv}) => <Status status={pv.status.phase} />;
+export const obPhase = ob => {
+  let phase = _.get(ob,'status.phase');
+  phase = phase ?  phase.charAt(0).toUpperCase() + phase.substring(1) : 'Lost';
+  return phase;
+}
+
+const OBStatus = ({ob}) => {
+  let phase = _.get(ob,'status.phase');
+  phase = phase ?  phase.charAt(0).toUpperCase() + phase.substring(1) : 'Lost';
+  return <Status status={phase} />;
+}
 
 const tableColumnClasses = [
   classNames('col-lg-2', 'col-md-2', 'col-sm-4', 'col-xs-6'),
-  classNames('col-lg-2', 'col-md-2', 'col-sm-4', 'hidden-xs'),
-  classNames('col-lg-2', 'col-md-2', 'hidden-sm', 'hidden-xs'),
-  classNames('col-lg-2', 'col-md-2', 'hidden-sm', 'hidden-xs'),
   classNames('col-lg-2', 'col-md-2', 'col-sm-4', 'col-xs-6'),
+  classNames('col-lg-2', 'col-md-2', 'col-sm-4', 'hidden-xs'),
+  classNames('col-lg-3', 'col-md-3', 'hidden-sm', 'hidden-xs'),
+  classNames('col-lg-3', 'col-md-3', 'hidden-sm', 'hidden-xs'),
   Kebab.columnClass,
 ];
 
@@ -31,28 +46,20 @@ const OBTableHeader = () => {
     },
     {
       title: 'Status', sortField: 'status.phase', transforms: [sortable],
-      props: { className: tableColumnClasses[1] },
-    },
-    {
-      title: 'Used', sortField: 'spec.capacity.storage', transforms: [sortable],
       props: { className: tableColumnClasses[2] },
     },
     {
-      title: 'OB Quota', sortField: 'metadata.labels', transforms: [sortable],
-      props: { className: tableColumnClasses[3] },
-    },
-    {
-      title: 'Stoarage Class', sortField: 'metadata.creationTimestamp', transforms: [sortable],
+      title: 'Storage Class', sortField: 'spec.storageClassName', transforms: [sortable],
       props: { className: tableColumnClasses[4] },
     },
     {
-      title: '', props: { className: tableColumnClasses[6] },
+      title: '', props: { className: tableColumnClasses[5] },
     },
   ];
 };
 OBTableHeader.displayName = 'OBTableHeader';
 
-const kind = 'ObjectBucket';
+const kind = referenceForModel(NooBaaObjectBucketModel);
 
 const OBTableRow = ({obj, index, key, style}) => {
   return (
@@ -60,77 +67,71 @@ const OBTableRow = ({obj, index, key, style}) => {
       <TableData className={tableColumnClasses[0]}>
         <ResourceLink kind={kind} name={obj.metadata.name} namespace={obj.metadata.namespace} title={obj.metadata.name} />
       </TableData>
-      <TableData className={tableColumnClasses[1]}>
-        <PVStatus pv={obj} />
-      </TableData>
-      <TableData className={tableColumnClasses[2]}>
-        {_.get(obj,'spec.claimRef.name') ?
-          /*Change this to OBC */
-          <ResourceLink kind="ObjectBucketClaim" name={obj.spec.claimRef.name} namespace={obj.spec.claimRef.namespace} title={obj.spec.claimRef.name} />
-          :
-          <div className="text-muted">No Claim</div>
-        }
-      </TableData>
-      <TableData className={tableColumnClasses[3]}>
-        {_.get(obj, 'spec.capacity.storage', '-')}
+      <TableData className={classNames(tableColumnClasses[2])}>
+        <OBStatus ob={obj} />
       </TableData>
       <TableData className={tableColumnClasses[4]}>
-        <LabelList kind={kind} labels={obj.metadata.labels} />
+        {_.get(obj, 'spec.storageClassName', '-')}
       </TableData>
-      <TableData className={tableColumnClasses[6]}>
+      <TableData className={tableColumnClasses[5]}>
         <ResourceKebab actions={menuActions} kind={kind} resource={obj} />
       </TableData>
     </TableRow>
   );
 };
+
 OBTableRow.displayName = 'OBTableRow';
 
-const Details = ({obj: pv}) => {
-  const storageClassName = _.get(pv, 'spec.storageClassName');
-  const pvcName = _.get(pv, 'spec.claimRef.name');
-  const namespace = _.get(pv, 'spec.claimRef.namespace');
-  const storage = _.get(pv, 'spec.capacity.storage');
-  const accessModes = _.get(pv, 'spec.accessModes');
-  const volumeMode = _.get(pv, 'spec.volumeMode');
-  const reclaimPolicy = _.get(pv, 'spec.persistentVolumeReclaimPolicy');
-  return (
+const Details = ({flags, obj}) => {
+  const labelSelector = _.get(obj, 'spec.selector');
+  const storageClassName = _.get(obj, 'spec.storageClassName');
+  return <React.Fragment>
     <div className="co-m-pane__body">
-      <SectionHeading text="Object Bucket Overview" />
+      <SectionHeading text="ObjectBucketClaim Overview" />
       <div className="row">
         <div className="col-sm-6">
-          {/*Change the resource kind here*/}
-          <ResourceSummary resource={pv}>
-            <dt>Reclaim Policy</dt>
-            <dd>{reclaimPolicy}</dd>
+          <ResourceSummary resource={obj}>
+            <dt>Label Selector</dt>
+            <dd><Selector selector={labelSelector} kind="ObjectBucket" /></dd>
           </ResourceSummary>
         </div>
         <div className="col-sm-6">
           <dl>
-            <dt>Status</dt>
-            <dd><PVStatus pv={pv} /></dd>
-            {storage && <><dt>Capacity</dt><dd>{storage}</dd></>}
-            {!_.isEmpty(accessModes) && <><dt>Access Modes</dt><dd>{accessModes.join(', ')}</dd></>}
-            <dt>Volume Mode</dt>
-            <dd>{volumeMode || 'Filesystem'}</dd>
             <dt>Storage Class</dt>
             <dd>
-              {storageClassName ? <ResourceLink kind="StorageClass" name={storageClassName} /> : 'None'}
+              {storageClassName ? <ResourceLink kind="StorageClass" name={storageClassName} /> : '-'}
             </dd>
-            {pvcName && <>
-              <dt>Object Bucket Claim</dt>
-              <dd><ResourceLink kind="PersistentVolumeClaim" name={pvcName} namespace={namespace} /></dd>
-            </>}
           </dl>
         </div>
       </div>
     </div>
-  );
+  </React.Fragment>;
 };
 
-export const ObjectBucketList = props => <Table {...props} aria-label="Object Buckets" Header={OBTableHeader} Row={OBTableRow} virtualize />;
-export const ObjectBucketsPage = props => <ListPage {...props} ListComponent={ObjectBucketList} kind={kind} canCreate={true} />;
-export const ObjectBucketDetailsPage = props => <DetailsPage
+
+const allPhases = [ 'Pending', 'Bound', 'Lost' ];
+const filters = [{
+  type: 'ob-status',
+  selected: allPhases,
+  reducer: obPhase,
+  items: _.map(allPhases, phase => ({
+    id: phase,
+    title: phase,
+  })),
+}];
+
+
+export const ObjectBucketsList = props => <Table {...props} aria-label="Object Buckets" Header={OBTableHeader} Row={OBTableRow}
+  virtualize />;
+
+export const ObjectBucketsPage = props => {
+  const createProps = {
+    to: `/k8s/cluster/objectbucket/~new/form`,
+  };
+  return <ListPage {...props} ListComponent={ObjectBucketsList} kind={kind} canCreate={true} createProps={createProps} rowFilters={filters}/>;
+};
+export const ObjectBucketsDetailsPage = props => <DetailsPage
   {...props}
   menuActions={menuActions}
-  pages={[navFactory.details(Details), navFactory.editYaml()]}
+  pages={[navFactory.details(Details), navFactory.editYaml(), navFactory.events(ResourceEventStream)]}
 />;

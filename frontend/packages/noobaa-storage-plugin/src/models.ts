@@ -59,7 +59,7 @@ export const NooBaaObjectBucketModel: K8sKind = {
   apiGroup: 'objectbucket.io',
   plural: 'objectbuckets',
   abbr: 'OB',
-  namespaced: true,
+  namespaced: false,
   kind: 'ObjectBucket',
   id: 'objectbucket',
   crd: true,

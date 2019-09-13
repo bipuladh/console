@@ -63,7 +63,7 @@ import {
 } from '../models';
 
 import * as plugins from '../plugins';
-import { NooBaaObjectBucketClaimModel } from '@console/noobaa-storage-plugin/src/models';
+import { NooBaaObjectBucketClaimModel, NooBaaObjectBucketModel } from '@console/noobaa-storage-plugin/src/models';
 
 const addResourcePage = (map: ImmutableMap<ResourceMapKey, ResourceMapValue>, page: plugins.ResourcePage) => {
   const key = referenceForModel(page.properties.model);
@@ -131,7 +131,8 @@ export const baseDetailsPages = ImmutableMap<ResourceMapKey, ResourceMapValue>()
   .set(referenceForModel(ClusterOperatorModel), () => import('./cluster-settings/cluster-operator' /* webpackChunkName: "cluster-operator" */).then(m => m.ClusterOperatorDetailsPage))
   .set(referenceForModel(ClusterVersionModel), () => import('./cluster-settings/cluster-version' /* webpackChunkName: "cluster-version" */).then(m => m.ClusterVersionDetailsPage))
   .set(referenceForModel(OAuthModel), () => import('./cluster-settings/oauth' /* webpackChunkName: "oauth" */).then(m => m.OAuthDetailsPage))
-  .set(referenceForModel(NooBaaObjectBucketClaimModel), () => import('./object-bucket-claim' /* webpackChunkName: "object-bucket" */).then(m => m.ObjectBucketClaimsDetailsPage));
+  .set(referenceForModel(NooBaaObjectBucketClaimModel), () => import('./object-bucket-claim' /* webpackChunkName: "object-bucket-claim" */).then(m => m.ObjectBucketClaimsDetailsPage))
+  .set(referenceForModel(NooBaaObjectBucketModel), () => import('./object-bucket' /* webpackChunkName: "object-bucket" */).then(m => m.ObjectBucketsDetailsPage));
 
 export const resourceDetailsPages = ImmutableMap<ResourceMapKey, ResourceMapValue>()
   .merge(baseDetailsPages)
@@ -195,7 +196,8 @@ export const baseListPages = ImmutableMap<ResourceMapKey, ResourceMapValue>()
   .set(referenceForModel(SubscriptionModel), () => import('./operator-lifecycle-manager/subscription' /* webpackChunkName: "subscription" */).then(m => m.SubscriptionsPage))
   .set(referenceForModel(InstallPlanModel), () => import('./operator-lifecycle-manager/install-plan' /* webpackChunkName: "install-plan" */).then(m => m.InstallPlansPage))
   .set(referenceForModel(ClusterOperatorModel), () => import('./cluster-settings/cluster-operator' /* webpackChunkName: "cluster-operator" */).then(m => m.ClusterOperatorPage))
-  .set(referenceForModel(NooBaaObjectBucketClaimModel), () => import('./object-bucket-claim' /* webpackChunkName: "object-bucket-claim" */).then(m => m.ObjectBucketClaimsPage));
+  .set(referenceForModel(NooBaaObjectBucketClaimModel), () => import('./object-bucket-claim' /* webpackChunkName: "object-bucket-claim" */).then(m => m.ObjectBucketClaimsPage))
+  .set(referenceForModel(NooBaaObjectBucketModel), () => import('./object-bucket' /* webpackChunkName: "object-bucket" */).then(m => m.ObjectBucketsPage));
 
 export const resourceListPages = ImmutableMap<ResourceMapKey, ResourceMapValue>()
   .merge(baseListPages)

@@ -12,6 +12,8 @@ import {
   podSelectorModal,
   deleteModal,
   expandPVCModal,
+  attachPodsToOBCModal,
+  confirmDeleteModal,
 } from '../modals';
 import { DropdownMixin } from './dropdown';
 import { asAccessReview, checkAccess, history, resourceObjPath, useAccessReview } from './index';
@@ -138,6 +140,22 @@ const kebabFactory: KebabFactory = {
       resource: obj,
     }),
     accessReview: asAccessReview(kind, obj, 'patch'),
+  }),
+  AttachPod: (kind, obj) => ({
+    label: 'Attach Pod',
+    callback: () =>  attachPodsToOBCModal({
+      kind,
+      resource: obj,
+    }),
+    accessReview: asAccessReview(kind, obj, 'patch')
+  }),
+  ConfirmDelete: (kind, obj) => ({
+    label: 'Delete',
+    callback: () => confirmDeleteModal({
+      kind,
+      resource: obj,
+    }),
+    accessReview: asAccessReview(kind, obj, 'patch')
   }),
 };
 
