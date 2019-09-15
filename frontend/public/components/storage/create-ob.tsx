@@ -13,32 +13,32 @@ import {
 import { StorageClassDropdown } from '../utils/storage-class-dropdown';
 import { NooBaaObjectBucketModel } from '@console/noobaa-storage-plugin/src/models';
 
-export class CreateOBPage_ extends React.Component {
-  state = {
-    storageClass: '',
-    obName:'',
-    obObj:null,
-    inProgress: false,
-    error: '',
+export const CreateOBPage:React.FC<CreateOBPageProps> = () => {
+  const [storageClass, setStorageClass] = React.useState('');
+  const [obName, setOBName] = React.useState('');
+  const [inProgress, setProgress] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [ob, setOB] = React.useState({});
 
-  };
+  React.useEffect( ()=>{
+    setOB(updateOB());
+  },[storageClass, obName]);
 
-  handleChange: React.ReactEventHandler<HTMLInputElement> = event => {
+  const handleChange: React.ReactEventHandler<HTMLInputElement> = event => {
     const { name, value } = event.currentTarget;
-    this.setState({[name]:value} as any, this.onChange);
+    if ( name == 'obName'){
+      setOBName(value);
+    }
   };
 
-  handleStorageClass = storageClass => {
-    this.setState({ storageClass:_.get(storageClass,'metadata.name')}, this.onChange);
+  const handleStorageClass = storageClass => {
+    setStorageClass(_.get(storageClass, 'metadata.name'));
   }
 
-  onChange = () => {
-    this.updateOB();
-  }
 
-  updateOB = () => {
-    const { storageClass, obName} = this.state;
-    const obj: K8sResourceKind = {
+  const updateOB = () => {
+
+    const ob: K8sResourceKind = {
       apiVersion: 'objectbucket.io/v1alpha1',
       kind: 'ObjectBucket',
       metadata: {
@@ -47,28 +47,26 @@ export class CreateOBPage_ extends React.Component {
       spec:{}
     };
     if (storageClass) {
-      obj.spec.storageClassName = storageClass;
+      ob.spec.storageClassName = storageClass;
     }
-    this.setState({obObj:obj});
-    return obj;
+    return ob;
   };
 
-  save = (e: React.FormEvent<EventTarget>) => {
+  const save = (e: React.FormEvent<EventTarget>) => {
     e.preventDefault();
-    this.setState({ inProgress: true });
-    k8sCreate(NooBaaObjectBucketModel, this.state.obObj).then(
+    setProgress(true);
+    k8sCreate(NooBaaObjectBucketModel, ob).then(
       resource => {
-        this.setState({ inProgress: false });
+        setProgress(false);
         history.push(resourceObjPath(resource, referenceFor(resource)));
       },
       err =>{
-        this.setState({error: err.message, inProgress: false});
+        setError(err.message);
+        setProgress(false);
       } 
     );
   };
 
-  render(){
-    const { error, inProgress } = this.state;
     return (
       <div className="co-m-pane__body co-m-pane__form">
         <Helmet>
@@ -82,7 +80,7 @@ export class CreateOBPage_ extends React.Component {
             <Link to={`/k8s/cluster/objectbuckets/~new`} id="yaml-link" replace>Edit YAML</Link>
           </div>
         </h1>
-        <form className="co-m-pane__body-group" onSubmit={this.save}>
+        <form className="co-m-pane__body-group" onSubmit={save}>
             <div>
               <div className="form-group">
               <label className="control-label co-required" htmlFor="ob-name">
@@ -92,7 +90,7 @@ export class CreateOBPage_ extends React.Component {
                 <input
                   className="pf-c-form-control"
                   type="text"
-                  onChange={this.handleChange}
+                  onChange={handleChange}
                   placeholder="my-object-bucket"
                   aria-describedby="ob-name-help"
                   id="ob-name"
@@ -106,7 +104,7 @@ export class CreateOBPage_ extends React.Component {
               </div>
               <div className="form-group">
                 <StorageClassDropdown
-                  onChange={this.handleStorageClass}
+                  onChange={handleStorageClass}
                   id="storageclass-dropdown"
                   describedBy="hide_storage_class_default_help"
                   required={true}
@@ -139,8 +137,8 @@ export class CreateOBPage_ extends React.Component {
       </div>
 
     );
-  }
 }
 
-
-export const CreateOBPage = () => { return <CreateOBPage_ /> };
+type CreateOBPageProps = {
+  history: Object;
+}
