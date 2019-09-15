@@ -143,11 +143,11 @@ const kebabFactory: KebabFactory = {
   }),
   AttachPod: (kind, obj) => ({
     label: 'Attach Pod',
-    callback: () =>  attachPodsToOBCModal({
+    callback: () => attachPodsToOBCModal({
       kind,
       resource: obj,
     }),
-    accessReview: asAccessReview(kind, obj, 'patch')
+    accessReview: asAccessReview(kind, obj, 'patch'),
   }),
   ConfirmDelete: (kind, obj) => ({
     label: `Delete ${kind.label}`,
@@ -155,7 +155,7 @@ const kebabFactory: KebabFactory = {
       kind,
       resource: obj,
     }),
-    accessReview: asAccessReview(kind, obj, 'patch')
+    accessReview: asAccessReview(kind, obj, 'patch'),
   }),
 };
 

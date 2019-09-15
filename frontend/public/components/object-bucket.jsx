@@ -3,12 +3,10 @@ import * as _ from 'lodash-es';
 import { sortable } from '@patternfly/react-table';
 import * as classNames from 'classnames';
 import { Status } from '@console/shared';
-import { Conditions } from './conditions';
 import { DetailsPage, ListPage, Table, TableRow, TableData } from './factory';
-import { Kebab, navFactory, ResourceKebab, SectionHeading, ResourceLink, ResourceSummary, Selector } from './utils';
+import { Kebab, navFactory, ResourceKebab, SectionHeading, ResourceLink, ResourceSummary } from './utils';
 import { ResourceEventStream } from './events';
 import { NooBaaObjectBucketModel, NooBaaObjectBucketClaimModel } from '@console/noobaa-storage-plugin/src/models';
-import { connectToModel } from '../kinds';
 import { referenceForModel } from '../module/k8s';
 
 const {common} = Kebab.factory;
@@ -21,14 +19,14 @@ const menuActions = [
 /*Check yaml to see why I am using this? Will remove when the issue is resolved.*/
 const obPhase = ob => {
   let phase = _.get(ob,'status.phase');
-  phase = phase ?  phase.charAt(0).toUpperCase() + phase.substring(1) : 'Lost';
+  phase = phase ? phase.charAt(0).toUpperCase() + phase.substring(1) : 'Lost';
   return phase;
-}
+};
 
 const OBStatus = ({ob}) => {
-  let phase = obPhase(ob);
+  const phase = obPhase(ob);
   return <Status status={phase} />;
-}
+};
 
 const tableColumnClasses = [
   classNames('col-lg-4', 'col-md-4', 'col-sm-6', 'col-xs-6'),
@@ -79,7 +77,7 @@ const OBTableRow = ({obj, index, key, style}) => {
 };
 OBTableRow.displayName = 'OBTableRow';
 
-const Details = ({flags, obj}) => {
+const Details = ({obj}) => {
   const storageClassName = _.get(obj, 'spec.storageClassName');
   const [OBCName, OBCNamespace] = [_.get(obj, 'spec.claimRef.name'), _.get(obj,'spec.claimRef.namespace')];
   return <React.Fragment>
@@ -87,7 +85,7 @@ const Details = ({flags, obj}) => {
       <SectionHeading text="Objec tBucket Overview" />
       <div className="row">
         <div className="col-sm-6">
-          <ResourceSummary resource={obj}/>
+          <ResourceSummary resource={obj} />
         </div>
         <div className="col-sm-6">
           <dl>
@@ -126,9 +124,9 @@ export const ObjectBucketsList = props => <Table {...props} aria-label="Object B
 
 export const ObjectBucketsPage = props => {
   const createProps = {
-    to: `/k8s/cluster/objectbucket/~new/form`,
+    to: '/k8s/cluster/objectbucket/~new/form',
   };
-  return <ListPage {...props} ListComponent={ObjectBucketsList} kind={kind} canCreate={true} createProps={createProps} rowFilters={filters}/>;
+  return <ListPage {...props} ListComponent={ObjectBucketsList} kind={kind} canCreate={true} createProps={createProps} rowFilters={filters} />;
 };
 export const ObjectBucketsDetailsPage = props => <DetailsPage
   {...props}

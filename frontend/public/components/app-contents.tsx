@@ -189,8 +189,8 @@ const AppContents = connect((state: RootState) => ({
           <LazyRoute path="/k8s/ns/:ns/:plural/:name/attach-storage" exact loader={() => import('./storage/attach-storage' /* webpackChunkName: "attach-storage" */).then(m => m.AttachStorage)} />
 
           <LazyRoute path="/k8s/ns/:ns/persistentvolumeclaims/~new/form" exact kind="PersistentVolumeClaim" loader={() => import('./storage/create-pvc' /* webpackChunkName: "create-pvc" */).then(m => m.CreatePVC)} />
-          <LazyRoute path="/k8s/cluster/objectbucket/~new/form" exact kind="ObjectBucket" loader={() => import('./storage/create-ob' /* webpackChunkName: "create-tsx" */).then(m => m.CreateOBPage)} />
-          <LazyRoute path="/k8s/ns/:ns/objectbucketclaims/~new/form" exact kind="ObjectBucketClaim" loader={() => import('./storage/create-obc' /* webpackChunkName: "create-tsx" */).then(m => m.CreateOBCPage)} />
+          <LazyRoute path="/k8s/cluster/objectbucket/~new/form" exact kind="ObjectBucket" loader={() => import('./storage/create-ob' /* webpackChunkName: "create-ob.tsx" */).then(m => m.CreateOBPage)} />
+          <LazyRoute path="/k8s/ns/:ns/objectbucketclaims/~new/form" exact kind="ObjectBucketClaim" loader={() => import('./storage/create-obc' /* webpackChunkName: "create-obc.tsx" */).then(m => m.CreateOBCPage)} />
 
           <LazyRoute path="/monitoring/alerts" exact loader={() => import('./monitoring' /* webpackChunkName: "monitoring" */).then(m => m.MonitoringUI)} />
           <LazyRoute path="/monitoring/silences" exact loader={() => import('./monitoring' /* webpackChunkName: "monitoring" */).then(m => m.MonitoringUI)} />

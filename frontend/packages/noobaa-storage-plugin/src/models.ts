@@ -63,4 +63,4 @@ export const NooBaaObjectBucketModel: K8sKind = {
   kind: 'ObjectBucket',
   id: 'objectbucket',
   crd: true,
-}
+};

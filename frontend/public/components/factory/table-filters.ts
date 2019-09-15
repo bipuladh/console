@@ -173,9 +173,8 @@ export const tableFilters: TableFilterMap = {
     }
     let phase = undefined;
     if (!obc.status){
-      phase = 'Lost'
-    }
-    else{
+      phase = 'Lost';
+    } else {
       phase = obc.status.Phase;
       phase = phase.charAt(0).toUpperCase() + phase.substring(1);
     }
@@ -188,14 +187,13 @@ export const tableFilters: TableFilterMap = {
     }
     let phase = undefined;
     if (!ob.status){
-      phase = 'Lost'
-    }
-    else{
+      phase = 'Lost';
+    } else {
       phase = ob.status.phase;
       phase = phase.charAt(0).toUpperCase() + phase.substring(1);
     }
     return phases.selected.has(phase) || !_.includes(phases.all, phase);
-  }
+  },
 };
 
 interface TableFilterGroups {

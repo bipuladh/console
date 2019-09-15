@@ -1,5 +1,5 @@
-import * as _ from 'lodash-es';
 import * as React from 'react';
+import * as _ from 'lodash-es';
 
 import { createModalLauncher, ModalTitle, ModalBody, ModalSubmitFooter } from '../factory/modal';
 import { PromiseComponent, history, resourceListPathFromModel } from '../utils';
@@ -12,9 +12,9 @@ class ConfirmDeleteModal extends PromiseComponent {
     super(props);
     this._submit = this._submit.bind(this);
     this._cancel = this.props.cancel.bind(this);
-    this.state = Object.assign(this.state, {
+    this.state = {
       inputMatch:false,
-    });
+    };
     this.handleInputChange = this.handleInputChange.bind(this);
   }
 
@@ -23,11 +23,20 @@ class ConfirmDeleteModal extends PromiseComponent {
     const {kind, resource} = this.props;
     this.handlePromise( k8sKill(kind, resource, {})).then(() => {
       this.props.close();
+
+      // If we are currently on the deleted resource's page, redirect to the resource list page
+      const re = new RegExp(`/${resource.metadata.name}(/|$)`);
+      if (re.test(window.location.pathname)) {
+        const listPath = this.props.redirectTo
+          ? this.props.redirectTo
+          : resourceListPathFromModel(kind, _.get(resource, 'metadata.namespace'));
+        history.push(listPath);
+      }
     });
   }
 
   handleInputChange(val) {
-    const isInputMatch = (val == this.props.resource.metadata.name) ? true : false;
+    const isInputMatch = (val === this.props.resource.metadata.name) ? true : false;
     this.setState({inputMatch:isInputMatch});
   }
 
@@ -37,28 +46,28 @@ class ConfirmDeleteModal extends PromiseComponent {
       <ModalTitle>Delete {kind.label}</ModalTitle>
       <ModalBody className="modal-body">
         <div className="co-delete-modal">
-        <div>
+          <div>
             <p className="lead">
               <YellowExclamationTriangleIcon className="co-delete-modal__icon" />
               Delete <span className="co-break-word">Object Bucket Claim</span>
             </p>
             <div>
-            <div>
+              <div>
             The action will permanently delete <strong className="co-break-word">{resource.metadata.name}</strong>
-            </div>
-            <div>
-            <strong className="co-break-word">This cannot be undone.</strong>
-            </div>
-            <br />
-            <div>
+              </div>
+              <div>
+                <strong className="co-break-word">This cannot be undone.</strong>
+              </div>
+              <br />
+              <div>
               Type <strong className="co-break-word">{resource.metadata.name}</strong> to confirm
-              <TextInput type="text" aria-label={`Type ${resource.metadata.name} here` } placeholder="Enter name" onChange={val=>this.handleInputChange(val)} />
+                <TextInput type="text" aria-label={`Type ${resource.metadata.name} here`} placeholder="Enter name" onChange={val=>this.handleInputChange(val)} />
+              </div>
             </div>
-              </div>
-              </div>
+          </div>
         </div>
       </ModalBody>
-      <ModalSubmitFooter submitDisabled={!this.state.inputMatch}  errorMessage={this.state.errorMessage} inProgress={this.state.inProgress} submitDanger submitText={this.props.btnText || 'Delete'} cancel={this._cancel} />
+      <ModalSubmitFooter submitDisabled={!this.state.inputMatch} errorMessage={this.state.errorMessage} inProgress={this.state.inProgress} submitDanger submitText={this.props.btnText || 'Delete'} cancel={this._cancel} />
     </form>;
   }
 }

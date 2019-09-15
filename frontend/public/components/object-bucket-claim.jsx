@@ -4,12 +4,10 @@ import { sortable } from '@patternfly/react-table';
 import * as classNames from 'classnames';
 
 import { Status } from '@console/shared';
-import { Conditions } from './conditions';
 import { DetailsPage, ListPage, Table, TableRow, TableData } from './factory';
-import { Kebab, navFactory, ResourceKebab, SectionHeading, ResourceLink, ResourceSummary, Selector } from './utils';
+import { Kebab, navFactory, ResourceKebab, SectionHeading, ResourceLink, ResourceSummary } from './utils';
 import { ResourceEventStream } from './events';
 import { NooBaaObjectBucketClaimModel, NooBaaObjectBucketModel } from '@console/noobaa-storage-plugin/src/models';
-import { connectToModel } from '../kinds';
 import { referenceForModel } from '../module/k8s';
 import { SecretData } from './configmap-and-secret-data';
 import { k8sGet } from '../module/k8s/resource';
@@ -30,15 +28,15 @@ const obcPhase = obc => {
   let phase = _.get(obc, 'status.Phase');
   phase = phase ? phase.charAt(0).toUpperCase() + phase.substring(1) : phase;
   return phase;
-}
+};
 
 const OBCStatus = ({ obc }) => {
   const phase = obcPhase(obc);
   return <Status status={phase} />;
-}
+};
 
 /**NooBaa issue currently no status is shown  */
-const isBound = obc => obcPhase(obc) == 'Bound' ? true : false
+const isBound = obc => obcPhase(obc) === 'Bound' ? true : false;
 
 const tableColumnClasses = [
   classNames('col-lg-3', 'col-md-2', 'col-sm-4', 'col-xs-6'),
@@ -93,7 +91,7 @@ const OBCTableRow = ({ obj, index, key, style }) => {
         <OBCStatus obc={obj} />
       </TableData>
       <TableData className={classNames(tableColumnClasses[3])}>
-        { obcPhase(obj) == 'Bound' ? <ResourceLink kind="Secret" name={obj.metadata.name} title={obj.metadata.name} namespace={obj.metadata.namespace} /> : '-' }
+        { isBound(obj) ? <ResourceLink kind="Secret" name={obj.metadata.name} title={obj.metadata.name} namespace={obj.metadata.namespace} /> : '-' }
       </TableData>
       <TableData className={tableColumnClasses[4]}>
         {_.get(obj, 'spec.storageClassName', '-')}
@@ -108,34 +106,36 @@ const OBCTableRow = ({ obj, index, key, style }) => {
 OBCTableRow.displayName = 'OBCTableRow';
 
 const GetSecret = ({ obj }) => {
-  const secret_data = {
+  const secretData = {
     'BUCKET_NAME': Base64.encode(_.get(obj, 'metadata.name')),
     'ACCESS_KEY': Base64.encode('loading..'),
     'SECRET_KEY': Base64.encode('loading..'),
     /*Need to clarify what to keep for endpoint exactly*/
     'ENDPOINT': Base64.encode('http://need_data.com'),
   };
-  const secret = k8sGet(SecretModel, _.get(obj, 'metadata.name'), _.get(obj, 'metadata.namespace'));
-  secret.then((data) => {
-    secret_data['ACCESS_KEY'] = Base64.encode(_.get(data, 'data.AWS_ACCESS_KEY_ID'));
-    secret_data['SECRET_KEY'] = Base64.encode(_.get(data, 'data.AWS_SECRET_ACCESS_KEY'));
-  });
-  return <div className="co-m-pane__body">
-    <SecretData title="Object Bucket Claim Data" data={secret_data} />
-  </div>
-}
+  if (isBound(obj)) {
+    const secret = k8sGet(SecretModel, _.get(obj, 'metadata.name'), _.get(obj, 'metadata.namespace'));
+    secret.then((data) => {
+      secretData.ACCESS_KEY = Base64.encode(_.get(data, 'data.AWS_ACCESS_KEY_ID'));
+      secretData.SECRET_KEY = Base64.encode(_.get(data, 'data.AWS_SECRET_ACCESS_KEY'));
+    });
+    return <div className="co-m-pane__body">
+      <SecretData title="Object Bucket Claim Data" data={secretData} />
+    </div>;
+  }
 
-const Details = ({ flags, obj }) => {
-  const labelSelector = _.get(obj, 'spec.selector');
+  return null;
+
+};
+
+const Details = ({ obj }) => {
   const storageClassName = _.get(obj, 'spec.storageClassName');
-
   return <React.Fragment>
     <div className="co-m-pane__body">
       <SectionHeading text="Object Bucket Claim Overview" />
       <div className="row">
         <div className="col-sm-6">
-          <ResourceSummary resource={obj}>
-          </ResourceSummary>
+          <ResourceSummary resource={obj} />
           <dt>Secret</dt>
           <dd><ResourceLink kind="Secret" name={obj.metadata.name} title={obj.metadata.name} namespace={obj.metadata.namespace} /></dd>
         </div>
@@ -149,7 +149,7 @@ const Details = ({ flags, obj }) => {
         </div>
       </div>
     </div>
-    {isBound(obj) &&  <GetSecret obj={obj} />}
+    <GetSecret obj={obj} />
   </React.Fragment>;
 };
 
@@ -165,7 +165,7 @@ const filters = [{
 }];
 
 
-export const ObjectBucketClaimsList = props => <Table {...props} aria-label="Object Bucket Claims" Header={OBCTableHeader} Row={OBCTableRow}  virtualize />;
+export const ObjectBucketClaimsList = props => <Table {...props} aria-label="Object Bucket Claims" Header={OBCTableHeader} Row={OBCTableRow} virtualize />;
 
 export const ObjectBucketClaimsPage = props => {
   const createProps = {
