@@ -15,7 +15,8 @@
   "consolePlugin": {
     "entry": "src/plugin.tsx",
     "integrationTestSuites": {
-      "kubevirt": ["integration-tests/**/*.scenario.ts"]
+      "kubevirt": ["integration-tests/**/*.scenario.ts"],
+      "noobaa": ["../noobaa-storage-plugin/integration-tests/**/*.scenario.ts"]
     }
   }
 }
