@@ -5,7 +5,7 @@ export const installedOps = element(by.linkText("Installed Operators"));
 
 export const ocsOp = element(by.css('[data-test-operator-row="Openshift Container Storage Operator"]'));
 //Create bs page elements
-export const bsStoreName = element(by.css('[placeholder = "my-backingstore"]'));
+export const bsStoreName = element(by.css('[aria-label = "BackingStore Name"]'));
 export const providerDropdown = $('form > div:nth-child(3) > div > div > button');
 
 export const bsStoreLink = $('div > article:nth-child(7) > div.pf-c-card__footer > a');
