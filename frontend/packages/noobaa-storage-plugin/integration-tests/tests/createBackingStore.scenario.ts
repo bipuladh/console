@@ -7,7 +7,7 @@ const ACC_KEY = 'access-key-dum-dummy';
 const SEC_KEY = 'sec-key-dum-dummy';
 const TB_NAME = 'my-dummy-bucket';
 
-describe('Test Creation of BackingStore', () => {
+/* describe('Test Creation of BackingStore', () => {
     it('Create a backingstore based on AWS', async () => {
         debugger;
         /**
@@ -21,6 +21,7 @@ describe('Test Creation of BackingStore', () => {
                 await browser.wait(until.visibilityOf(ocsOp));
                 await ocsOp.click(); */
         //
+        /*
         await browser.get(`${appHost}/k8s/ns/openshift-storage/operators.coreos.com~v1alpha1~ClusterServiceVersion`);
         await browser.wait(until.visibilityOf(ocsOp));
         await ocsOp.click();
@@ -40,6 +41,7 @@ describe('Test Creation of BackingStore', () => {
     it('Test actions for the backingstore', async () => {
         /**Edit
          * Delete
-         */
+         
     });
 })
+ */

@@ -25,7 +25,7 @@ export const endpoint = $('form > div:nth-child(5) > input');
 //For AWS
 export const secretDropdown = $('form > div.pf-c-form__group.nb-bs-form-entry.nb-bs-form-entry--full-width > div > div > div > button');
 //export const secretSelect = $('#my-secret');
-export const switchToCreds = element(by.buttonText('Switch to Credentials'));
+export const switchToCreds = element(by.partialButtonText('Switch to Credentials'));
 export const accessKey = element(by.css('[aria-label = "Access Key Field"]'));
 export const secretKey = element(by.css('[aria-label = "Secret Key Field"]'));
 export const targetBucket = element(by.css('[aria-label = "Target Bucket"]'))
