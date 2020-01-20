@@ -551,3 +551,10 @@ $co-external-link-padding-right: 15px;
 .no-margin {
   margin: 0 !important;
 }
+
+.co-input__dropdown-width div{
+  width: 100%;
+  button {
+    width: 100%;
+  }
+}

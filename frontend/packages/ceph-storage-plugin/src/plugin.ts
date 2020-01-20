@@ -1,26 +1,30 @@
 import * as _ from 'lodash';
-import {
-  DashboardsCard,
-  DashboardsTab,
-  DashboardsOverviewHealthPrometheusSubsystem,
-  ModelFeatureFlag,
-  ModelDefinition,
-  Plugin,
-  RoutePage,
-  ClusterServiceVersionAction,
-  DashboardsOverviewUtilizationItem,
-} from '@console/plugin-sdk';
-import { GridPosition } from '@console/shared/src/components/dashboard/DashboardGrid';
-import { OverviewQuery } from '@console/internal/components/dashboard/dashboards-page/overview-dashboard/queries';
-import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager/src/models';
-import { referenceForModel } from '@console/internal/module/k8s';
 import * as models from './models';
+
 import {
   CAPACITY_USAGE_QUERIES,
-  StorageDashboardQuery,
   STORAGE_HEALTH_QUERIES,
+  StorageDashboardQuery,
 } from './constants/queries';
+import {
+  ClusterServiceVersionAction,
+  DashboardsCard,
+  DashboardsOverviewHealthPrometheusSubsystem,
+  DashboardsOverviewUtilizationItem,
+  DashboardsTab,
+  KebabActions,
+  ModelDefinition,
+  ModelFeatureFlag,
+  Plugin,
+  RoutePage,
+} from '@console/plugin-sdk';
+
+import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager/src/models';
+import { GridPosition } from '@console/shared/src/components/dashboard/DashboardGrid';
+import { OverviewQuery } from '@console/internal/components/dashboard/dashboards-page/overview-dashboard/queries';
 import { getCephHealthState } from './components/dashboard-page/storage-dashboard/status-card/utils';
+import { getKebabActionsForKind } from './utils/kebab-actions';
+import { referenceForModel } from '@console/internal/module/k8s';
 
 type ConsumedExtensions =
   | ModelFeatureFlag
@@ -30,7 +34,8 @@ type ConsumedExtensions =
   | DashboardsOverviewHealthPrometheusSubsystem
   | DashboardsOverviewUtilizationItem
   | RoutePage
-  | ClusterServiceVersionAction;
+  | ClusterServiceVersionAction
+  | KebabActions;
 
 const CEPH_FLAG = 'CEPH';
 const apiObjectRef = referenceForModel(models.OCSServiceModel);
@@ -178,6 +183,24 @@ const plugin: Plugin<ConsumedExtensions> = [
             throw e;
           });
       },
+    },
+  },
+  {
+    type: 'Page/Route',
+    properties: {
+      exact: true,
+      path: `/k8s/ns/:ns/persistentvolumeclaims/:appName/volumesnapshots/:name`,
+      loader: () =>
+        import(
+          './components/volume-snapshot/volume-snapshot' /* webpackChunkName: "metal3-baremetalhost" */
+        ).then((m) => m.VolumeSnapshotDetails),
+      required: CEPH_FLAG,
+    },
+  },
+  {
+    type: 'KebabActions',
+    properties: {
+      getKebabActionsForKind,
     },
   },
 ];
