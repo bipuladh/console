@@ -1,23 +1,26 @@
 import * as React from 'react';
 import * as _ from 'lodash-es';
-import { sortable } from '@patternfly/react-table';
 import * as classNames from 'classnames';
 
-import { Status, FLAGS } from '@console/shared';
-import { connectToFlags } from '../reducers/features';
-import { Conditions } from './conditions';
-import { DetailsPage, ListPage, Table, TableRow, TableData } from './factory';
+import { DetailsPage, ListPage, Table, TableData, TableRow } from './factory';
 import {
+  EmptyBox,
   Kebab,
-  navFactory,
   ResourceKebab,
-  SectionHeading,
   ResourceLink,
   ResourceSummary,
+  SectionHeading,
   Selector,
+  navFactory,
 } from './utils';
-import { ResourceEventStream } from './events';
+import { FLAGS, Status } from '@console/shared';
+
+import { Conditions } from './conditions';
 import { PersistentVolumeClaimModel } from '../models';
+import { ResourceEventStream } from './events';
+import { VolumeSnapshotPage } from '@console/ceph-storage-plugin/src/components/volume-snapshot/volume-snapshot';
+import { connectToFlags } from '../reducers/features';
+import { sortable } from '@patternfly/react-table';
 
 const { common, ExpandPVC } = Kebab.factory;
 const menuActions = [
@@ -192,6 +195,12 @@ const Details_ = ({ flags, obj: pvc }) => {
   );
 };
 
+const SnapshotTab = ({ obj }) => {
+  if (_.isEmpty(obj.spec)) {
+    return <EmptyBox label="Snapshots" />;
+  }
+  return <VolumeSnapshotPage pvcObj={obj} />;
+};
 const Details = connectToFlags(FLAGS.CAN_LIST_PV)(Details_);
 
 const allPhases = ['Pending', 'Bound', 'Lost'];
@@ -231,6 +240,7 @@ export const PersistentVolumeClaimsPage = (props) => {
     />
   );
 };
+
 export const PersistentVolumeClaimsDetailsPage = (props) => (
   <DetailsPage
     {...props}
@@ -239,6 +249,7 @@ export const PersistentVolumeClaimsDetailsPage = (props) => (
       navFactory.details(Details),
       navFactory.editYaml(),
       navFactory.events(ResourceEventStream),
+      navFactory.snapshot(SnapshotTab),
     ]}
   />
 );
