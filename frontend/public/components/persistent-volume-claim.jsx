@@ -4,7 +4,6 @@ import * as classNames from 'classnames';
 
 import { DetailsPage, ListPage, Table, TableData, TableRow } from './factory';
 import {
-  EmptyBox,
   Kebab,
   ResourceKebab,
   ResourceLink,
@@ -12,15 +11,17 @@ import {
   SectionHeading,
   Selector,
   navFactory,
+  AsyncComponent,
 } from './utils';
 import { FLAGS, Status } from '@console/shared';
 
 import { Conditions } from './conditions';
 import { PersistentVolumeClaimModel } from '../models';
 import { ResourceEventStream } from './events';
-import { VolumeSnapshotPage } from '@console/ceph-storage-plugin/src/components/volume-snapshot/volume-snapshot';
 import { connectToFlags } from '../reducers/features';
 import { sortable } from '@patternfly/react-table';
+import * as plugins from '../plugins';
+import { referenceForModel } from '../module/k8s';
 
 const { common, ExpandPVC } = Kebab.factory;
 const menuActions = [
@@ -195,12 +196,12 @@ const Details_ = ({ flags, obj: pvc }) => {
   );
 };
 
-const SnapshotTab = ({ obj }) => {
+/* const SnapshotTab = ({ obj }) => {
   if (_.isEmpty(obj.spec)) {
     return <EmptyBox label="Snapshots" />;
   }
   return <VolumeSnapshotPage pvcObj={obj} />;
-};
+}; */
 const Details = connectToFlags(FLAGS.CAN_LIST_PV)(Details_);
 
 const allPhases = ['Pending', 'Bound', 'Lost'];
@@ -249,7 +250,21 @@ export const PersistentVolumeClaimsDetailsPage = (props) => (
       navFactory.details(Details),
       navFactory.editYaml(),
       navFactory.events(ResourceEventStream),
-      navFactory.snapshot(SnapshotTab),
+      // Need to change how this extension works
+      ...plugins.registry
+        .getAdditionalPage()
+        .filter(
+          (page) =>
+            referenceForModel(page.properties.model) ===
+            referenceForModel(PersistentVolumeClaimModel),
+        )
+        .map((p) => ({
+          //Get href and name from extension
+          href: p.properties.href,
+          name: p.properties.name,
+          //Try passing component or some other way right now its failing
+          component: () => <AsyncComponent loader={p.properties.loader} {...props} />,
+        })),
     ]}
   />
 );

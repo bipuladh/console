@@ -134,11 +134,6 @@ export const navFactory: NavFactory = {
     name: 'History',
     component,
   }),
-  snapshot: (component) => ({
-    href: 'volumesnapshots',
-    name: 'Volume Snapshots',
-    component,
-  }),
 };
 
 export const NavBar = withRouter<NavBarProps>(({ pages, basePath }) => {
