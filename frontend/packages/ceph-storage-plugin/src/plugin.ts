@@ -17,6 +17,7 @@ import {
   ModelFeatureFlag,
   Plugin,
   RoutePage,
+  AdditionalPage,
 } from '@console/plugin-sdk';
 
 import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager/src/models';
@@ -25,6 +26,7 @@ import { OverviewQuery } from '@console/internal/components/dashboard/dashboards
 import { getCephHealthState } from './components/dashboard-page/storage-dashboard/status-card/utils';
 import { getKebabActionsForKind } from './utils/kebab-actions';
 import { referenceForModel } from '@console/internal/module/k8s';
+import { PersistentVolumeClaimModel } from '@console/internal/models';
 
 type ConsumedExtensions =
   | ModelFeatureFlag
@@ -34,6 +36,7 @@ type ConsumedExtensions =
   | DashboardsOverviewHealthPrometheusSubsystem
   | DashboardsOverviewUtilizationItem
   | RoutePage
+  | AdditionalPage
   | ClusterServiceVersionAction
   | KebabActions;
 
@@ -52,6 +55,16 @@ const plugin: Plugin<ConsumedExtensions> = [
     properties: {
       model: models.OCSServiceModel,
       flag: CEPH_FLAG,
+    },
+  },
+  {
+    type: 'Page/AdditionalPage',
+    properties: {
+      href: 'snapshot',
+      model: PersistentVolumeClaimModel,
+      name: 'Snapshot',
+      loader: () =>
+        import('./components/volume-snapshot/volume-snapshot').then((m) => m.VolumeSnapshotPage),
     },
   },
   {

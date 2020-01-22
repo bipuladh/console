@@ -10,6 +10,21 @@ namespace ExtensionProperties {
     loader: LazyLoader<T>;
   }
 
+  /** To add a additonal page to public components(ex: PV, PVCs) via plugins */
+  export type AdditionalPage = ResourcePage<{
+    /** See https://reacttraining.com/react-router/web/api/match */
+    match: RouteComponentProps['match'];
+    /** The resource kind scope. */
+    kind: K8sResourceKindReference;
+    /** The namespace scope. */
+    namespace: string;
+  }> & {
+    /** The href for the additional page */
+    href: string;
+    /** Name of the additional tab inside detailsPage  */
+    name: string;
+  };
+
   export type ResourceListPage = ResourcePage<{
     /** See https://reacttraining.com/react-router/web/api/match */
     match: RouteComponentProps['match'];
@@ -60,6 +75,10 @@ export interface RoutePage extends Extension<ExtensionProperties.RoutePage> {
   type: 'Page/Route';
 }
 
+export interface AdditionalPage extends Extension<ExtensionProperties.AdditionalPage> {
+  type: 'Page/AdditionalPage';
+}
+
 export type ResourcePage = ResourceListPage | ResourceDetailsPage;
 
 export const isResourceListPage = (e: Extension): e is ResourceListPage => {
@@ -68,6 +87,10 @@ export const isResourceListPage = (e: Extension): e is ResourceListPage => {
 
 export const isResourceDetailsPage = (e: Extension): e is ResourceDetailsPage => {
   return e.type === 'Page/Resource/Details';
+};
+
+export const isAdditionalPage = (e: Extension): e is AdditionalPage => {
+  return e.type === 'Page/AdditionalPage';
 };
 
 export const isRoutePage = (e: Extension): e is RoutePage => {
