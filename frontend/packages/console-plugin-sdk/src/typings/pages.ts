@@ -1,6 +1,6 @@
-import { RouteProps, RouteComponentProps } from 'react-router-dom';
-import { K8sKind, K8sResourceKindReference } from '@console/internal/module/k8s';
 import { Extension, LazyLoader } from './base';
+import { K8sKind, K8sResourceKindReference } from '@console/internal/module/k8s';
+import { RouteComponentProps, RouteProps } from 'react-router-dom';
 
 namespace ExtensionProperties {
   export interface ResourcePage<T> {
@@ -10,7 +10,7 @@ namespace ExtensionProperties {
     loader: LazyLoader<T>;
   }
 
-  /** To add a additonal page to public components(ex: PV, PVCs) via plugins */
+  /** To add an additonal page to public components(ex: PVs, PVCs) via plugins */
   export type AdditionalPage = ResourcePage<{
     /** See https://reacttraining.com/react-router/web/api/match */
     match: RouteComponentProps['match'];

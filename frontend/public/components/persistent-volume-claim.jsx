@@ -1,9 +1,10 @@
 import * as React from 'react';
 import * as _ from 'lodash-es';
 import * as classNames from 'classnames';
+import * as plugins from '../plugins';
 
-import { DetailsPage, ListPage, Table, TableData, TableRow } from './factory';
 import {
+  AsyncComponent,
   Kebab,
   ResourceKebab,
   ResourceLink,
@@ -11,17 +12,16 @@ import {
   SectionHeading,
   Selector,
   navFactory,
-  AsyncComponent,
 } from './utils';
+import { DetailsPage, ListPage, Table, TableData, TableRow } from './factory';
 import { FLAGS, Status } from '@console/shared';
 
 import { Conditions } from './conditions';
 import { PersistentVolumeClaimModel } from '../models';
 import { ResourceEventStream } from './events';
 import { connectToFlags } from '../reducers/features';
-import { sortable } from '@patternfly/react-table';
-import * as plugins from '../plugins';
 import { referenceForModel } from '../module/k8s';
+import { sortable } from '@patternfly/react-table';
 
 const { common, ExpandPVC } = Kebab.factory;
 const menuActions = [
@@ -112,8 +112,8 @@ const PVCTableRow = ({ obj, index, key, style }) => {
             title={obj.spec.volumeName}
           />
         ) : (
-          <div className="text-muted">No Persistent Volume</div>
-        )}
+            <div className="text-muted">No Persistent Volume</div>
+          )}
       </TableData>
       <TableData className={tableColumnClasses[4]}>
         {_.get(obj, 'status.capacity.storage', '-')}
@@ -173,8 +173,8 @@ const Details_ = ({ flags, obj: pvc }) => {
                 {storageClassName ? (
                   <ResourceLink kind="StorageClass" name={storageClassName} />
                 ) : (
-                  '-'
-                )}
+                    '-'
+                  )}
               </dd>
               {volumeName && canListPV && (
                 <>
@@ -196,12 +196,6 @@ const Details_ = ({ flags, obj: pvc }) => {
   );
 };
 
-/* const SnapshotTab = ({ obj }) => {
-  if (_.isEmpty(obj.spec)) {
-    return <EmptyBox label="Snapshots" />;
-  }
-  return <VolumeSnapshotPage pvcObj={obj} />;
-}; */
 const Details = connectToFlags(FLAGS.CAN_LIST_PV)(Details_);
 
 const allPhases = ['Pending', 'Bound', 'Lost'];
@@ -250,7 +244,6 @@ export const PersistentVolumeClaimsDetailsPage = (props) => (
       navFactory.details(Details),
       navFactory.editYaml(),
       navFactory.events(ResourceEventStream),
-      // Need to change how this extension works
       ...plugins.registry
         .getAdditionalPage()
         .filter(
@@ -259,10 +252,8 @@ export const PersistentVolumeClaimsDetailsPage = (props) => (
             referenceForModel(PersistentVolumeClaimModel),
         )
         .map((p) => ({
-          //Get href and name from extension
           href: p.properties.href,
           name: p.properties.name,
-          //Try passing component or some other way right now its failing
           component: () => <AsyncComponent loader={p.properties.loader} {...props} />,
         })),
     ]}

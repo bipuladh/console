@@ -2,11 +2,7 @@ import * as _ from 'lodash';
 import * as models from './models';
 
 import {
-  CAPACITY_USAGE_QUERIES,
-  STORAGE_HEALTH_QUERIES,
-  StorageDashboardQuery,
-} from './constants/queries';
-import {
+  AdditionalPage,
   ClusterServiceVersionAction,
   DashboardsCard,
   DashboardsOverviewHealthPrometheusSubsystem,
@@ -17,16 +13,20 @@ import {
   ModelFeatureFlag,
   Plugin,
   RoutePage,
-  AdditionalPage,
 } from '@console/plugin-sdk';
+import {
+  CAPACITY_USAGE_QUERIES,
+  STORAGE_HEALTH_QUERIES,
+  StorageDashboardQuery,
+} from './constants/queries';
 
 import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager/src/models';
 import { GridPosition } from '@console/shared/src/components/dashboard/DashboardGrid';
 import { OverviewQuery } from '@console/internal/components/dashboard/dashboards-page/cluster-dashboard/queries';
+import { PersistentVolumeClaimModel } from '@console/internal/models';
 import { getCephHealthState } from './components/dashboard-page/storage-dashboard/status-card/utils';
 import { getKebabActionsForKind } from './utils/kebab-actions';
 import { referenceForModel } from '@console/internal/module/k8s';
-import { PersistentVolumeClaimModel } from '@console/internal/models';
 
 type ConsumedExtensions =
   | ModelFeatureFlag
@@ -60,9 +60,9 @@ const plugin: Plugin<ConsumedExtensions> = [
   {
     type: 'Page/AdditionalPage',
     properties: {
-      href: 'snapshot',
+      href: 'volumesnapshots',
       model: PersistentVolumeClaimModel,
-      name: 'Snapshot',
+      name: 'Volume Snapshots',
       loader: () =>
         import('./components/volume-snapshot/volume-snapshot').then((m) => m.VolumeSnapshotPage),
     },

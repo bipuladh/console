@@ -16,49 +16,54 @@ import {
   ModalTitle,
   createModalLauncher,
 } from '@console/internal/components/factory';
+import { getName, getNamespace } from '@console/shared';
 
 import { PersistentVolumeClaimModel } from '@console/internal/models';
 import { VolumeSnapshotModel } from '../../../models';
 
+export type VolumeSnapshotModalProps = {
+  resource?: {
+    obj: {
+      data: K8sResourceKind;
+    };
+  };
+} & HandlePromiseProps &
+  ModalComponentProps;
+
 export const VolumeSnapshotModal = withHandlePromise((props: VolumeSnapshotModalProps) => {
   const { close, cancel, resource, errorMessage, inProgress, handlePromise } = props;
-  const [submitDisabled, setSubmitDisabled] = React.useState(false);
+  console.log(resource.obj.data);
   const [snapshotName, setSnapshotName] = React.useState(
-    `${resource?.metadata?.name || 'pvc'}-snapshot-1`,
+    `${getName(resource) || 'pvc'}-snapshot-1`,
   );
   const snapshotTypes = {
     single: 'Single Snapshot',
   };
 
   const onSnapshotNameChange = (value: string) => {
-    setSubmitDisabled(!value);
     setSnapshotName(value);
   };
 
   const submit = (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();
-    const ns = resource?.metadata?.namespace;
-    const pvcName = resource?.metadata?.name;
+    const ns = getNamespace(resource);
+    const pvcName = getName(resource);
     const snapshotTemplate: K8sResourceKind = {
-      apiVersion: `${VolumeSnapshotModel.apiVersion}`,
-      kind: `${VolumeSnapshotModel.kind}`,
+      apiVersion: VolumeSnapshotModel.apiVersion,
+      kind: VolumeSnapshotModel.kind,
       metadata: {
-        name: `${snapshotName}`,
-        namespace: `${ns}`,
+        name: snapshotName,
+        namespace: ns,
       },
       spec: {
         source: {
-          name: `${pvcName}`,
-          kind: `${PersistentVolumeClaimModel.kind}`,
+          name: pvcName,
+          kind: PersistentVolumeClaimModel.kind,
         },
       },
     };
     handlePromise(k8sCreate(VolumeSnapshotModel, snapshotTemplate))
-      .then(close)
-      .catch((error) => {
-        setSubmitDisabled(true);
-        throw error;
-      });
+      .then(close);
   };
 
   return (
@@ -66,22 +71,21 @@ export const VolumeSnapshotModal = withHandlePromise((props: VolumeSnapshotModal
       <div className="modal-content modal-content--no-inner-scroll">
         <ModalTitle>Create Snapshot</ModalTitle>
         <ModalBody>
-          <p>Creating snapshot for {resource?.metadata?.name}</p>
-          <FormGroup label="Name" isRequired fieldId="snapshot-modal__name">
+          <p>Creating snapshot for {getName(resource)}</p>
+          <FormGroup label="Name" isRequired fieldId="snapshot-name">
             <TextInput
               isRequired
               type="text"
-              name="snapshot-modal__name"
+              name="snapshot-name"
+              aria-label="snapshot-name"
               value={snapshotName}
               onChange={onSnapshotNameChange}
             />
           </FormGroup>
-          <br />
           <FormGroup label="Schedule" fieldId="snapshot-modal__schedule">
             <Dropdown
               className="ceph-volume-snapshot-input__dropdown-width"
               items={snapshotTypes}
-              id="dropdown-schedulebox"
               selectedKey={snapshotTypes.single}
             />
           </FormGroup>
@@ -91,16 +95,10 @@ export const VolumeSnapshotModal = withHandlePromise((props: VolumeSnapshotModal
           errorMessage={errorMessage}
           submitText="Create"
           cancel={cancel}
-          submitDisabled={submitDisabled}
         />
       </div>
     </Form>
   );
 });
-
-export type VolumeSnapshotModalProps = {
-  resource: K8sResourceKind;
-} & HandlePromiseProps &
-  ModalComponentProps;
 
 export const volumeSnapshotModal = createModalLauncher(VolumeSnapshotModal);

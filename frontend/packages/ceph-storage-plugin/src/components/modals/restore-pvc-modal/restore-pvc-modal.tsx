@@ -17,25 +17,24 @@ import {
   createModalLauncher,
 } from '@console/internal/components/factory';
 import { NamespaceModel, PersistentVolumeClaimModel } from '@console/internal/models';
+import { getName, getNamespace } from '@console/shared';
 
 import { VolumeSnapshotModel } from '../../../models';
 
 export const RestorePVCModal = withHandlePromise((props: RestorePVCModalProps) => {
   const { close, cancel, resource, errorMessage, inProgress, handlePromise } = props;
-  const [submitDisabled, setSubmitDisabled] = React.useState(false);
   const [pvcResource, setResource] = React.useState(null);
   const [restorePVCName, setPVCName] = React.useState(
-    `${resource?.metadata?.name || 'pvc'}-restore`,
+    `${getName(resource) || 'pvc'}-restore`,
   );
 
   const onRestoreNameChange = (value: string) => {
-    setSubmitDisabled(!value);
     setPVCName(value);
   };
 
   React.useEffect(() => {
-    k8sGet(PersistentVolumeClaimModel, resource?.spec?.source?.name, resource?.metadata?.namespace)
-      .then((obj) => setResource(obj))
+    k8sGet(PersistentVolumeClaimModel, resource?.spec?.source?.name, getNamespace(resource))
+      .then(setResource)
       .catch((error) => {
         setResource(null);
         throw error;
@@ -44,47 +43,41 @@ export const RestorePVCModal = withHandlePromise((props: RestorePVCModalProps) =
 
   const submit = (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();
-    const snapshotName = resource?.metadata?.name;
+    const snapshotName = getName(resource);
     const pvcSize = resource?.status?.restoreSize;
     const accessModes = pvcResource?.spec?.accessModes;
     const pvcStorageClass = pvcResource?.spec?.storageClassName;
-    const namespace = resource?.metadata?.namespace;
+    const namespace = getNamespace(resource);
     const restorePVCTemplate: K8sResourceKind = {
-      apiVersion: `${PersistentVolumeClaimModel.apiVersion}`,
-      kind: `${PersistentVolumeClaimModel.kind}`,
+      apiVersion: PersistentVolumeClaimModel.apiVersion,
+      kind: PersistentVolumeClaimModel.kind,
       metadata: {
-        name: `${restorePVCName}`,
+        name: restorePVCName,
       },
       spec: {
-        storageClassName: `${pvcStorageClass}`,
+        storageClassName: pvcStorageClass,
         dataSource: {
-          name: `${snapshotName}`,
-          kind: `${VolumeSnapshotModel.kind}`,
+          name: snapshotName,
+          kind: VolumeSnapshotModel.kind,
           apiGroup: 'snapshot.storage.k8s.io',
         },
-        accessModes: [`${accessModes}`],
+        accessModes: [...accessModes],
         resources: {
           requests: {
-            storage: `${pvcSize}`,
+            storage: pvcSize,
           },
         },
       },
     };
     handlePromise(k8sCreate(PersistentVolumeClaimModel, restorePVCTemplate, { ns: namespace }))
-      .then(() => {
-        close();
-      })
-      .catch((error) => {
-        setSubmitDisabled(true);
-        throw error;
-      });
+      .then(close);
   };
 
   return (
     <div className="modal-content modal-content--no-inner-scroll">
       <ModalTitle>Restore</ModalTitle>
       <ModalBody>
-        <p>After restore action is finished, a new PVC will be created </p>
+        <p>After restore action is finished, a new PVC will be created. </p>
         <Form onSubmit={submit}>
           <FormGroup label="Name" isRequired fieldId="restore-pvc-modal__name">
             <TextInput
@@ -109,7 +102,7 @@ export const RestorePVCModal = withHandlePromise((props: RestorePVCModalProps) =
                 </div>
                 <div>
                   <p className="ceph-restore-pvc-modal__pvc-details">Size</p>
-                  <p>{resource?.status?.restoreSize ? resource?.status?.restoreSize : 'No Data'}</p>
+                  <p>{resource?.status?.restoreSize || 'No Data'}</p>
                 </div>
               </GridItem>
               <GridItem span={6}>
@@ -117,7 +110,7 @@ export const RestorePVCModal = withHandlePromise((props: RestorePVCModalProps) =
                   <p className="ceph-restore-pvc-modal__pvc-details">Namespace</p>
                   <p>
                     <ResourceIcon kind={NamespaceModel.kind} />
-                    {resource?.metadata?.namespace}
+                    {getNamespace(resource)}
                   </p>
                 </div>
                 <div>
@@ -139,7 +132,6 @@ export const RestorePVCModal = withHandlePromise((props: RestorePVCModalProps) =
         errorMessage={errorMessage}
         submitText="Restore"
         cancel={cancel}
-        submitDisabled={submitDisabled}
       />
     </div>
   );

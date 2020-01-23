@@ -14,6 +14,7 @@ import {
   SectionHeading,
 } from '@console/internal/components/utils';
 import { K8sResourceKind, referenceFor } from '@console/internal/module/k8s';
+import { Link, match } from 'react-router-dom';
 import {
   ListPage,
   Table,
@@ -22,11 +23,10 @@ import {
   TableRow,
 } from '@console/internal/components/factory';
 import { NamespaceModel, PersistentVolumeClaimModel } from '@console/internal/models';
+import { getName, getNamespace } from '@console/shared';
 
-import { Link } from 'react-router-dom';
 import { VolumeSnapshotModel } from '../../models';
 import { getKebabActionsForKind } from '../../utils/kebab-actions';
-import { getName } from '@console/shared';
 import { sortable } from '@patternfly/react-table';
 import { volumeSnapshotModal } from '../modals/volume-snapshot-modal/volume-snapshot-modal';
 
@@ -83,33 +83,38 @@ VolumeSnapshotTableHeader.displayName = 'SnapshotTableHeader';
 
 const volumeSnapshotKind = referenceFor(VolumeSnapshotModel);
 
-export const VolumeSnapshotDetails: React.FC = (props) => {
-  const pvcParams = _.get(props, 'match') || {};
+type VolumeSnapshotDetailsProps = {
+  match: match<{ ns: string; name: string; appName: string }>;
+}
+
+export const VolumeSnapshotDetails: React.FC<VolumeSnapshotDetailsProps> = (props) => {
+  const { match: pvcObj } = props;
   return (
     <Firehose
       resources={[
         {
-          name: pvcParams?.params?.name,
-          namespace: pvcParams?.params?.ns,
+          name: pvcObj.params.name,
+          namespace: pvcObj.params.ns,
           kind: referenceFor(VolumeSnapshotModel),
+          prop: 'obj'
         },
       ]}
     >
       <DetailsComponent
         {...props}
-        ns={pvcParams?.params?.ns}
-        pvcName={pvcParams?.params?.appName}
-        url={pvcParams?.url}
+        ns={pvcObj.params.ns}
+        pvcName={pvcObj.params.appName}
+        url={pvcObj.url}
       />
     </Firehose>
   );
 };
 type DetailsComponentProps = {
-  ns: any;
+  ns: string;
   pvcName: string;
   url: string;
   resources?: {
-    undefined: {
+    obj: {
       data: K8sResourceKind;
     };
   };
@@ -120,10 +125,9 @@ const DetailsComponent: React.FC<DetailsComponentProps> = (props) => {
     pvcName,
     url,
     resources: {
-      undefined: { data },
+      obj: { data },
     },
   } = props;
-  console.log(data);
   return (
     <div>
       <div className="ceph-volume-snapshot__header">
@@ -158,7 +162,7 @@ const DetailsComponent: React.FC<DetailsComponentProps> = (props) => {
           <div className="col-sm-6">
             <dl>
               <dt>Name</dt>
-              <dd>{data?.metadata?.name}</dd>
+              <dd>{getName(data)}</dd>
               <dt>Date</dt>
               <dd>{data?.metadata?.creationTimestamp}</dd>
               <dt>Status</dt>
@@ -169,8 +173,8 @@ const DetailsComponent: React.FC<DetailsComponentProps> = (props) => {
               <dd>
                 <ResourceLink
                   kind={NamespaceModel.kind}
-                  name={data?.metadata?.namespace}
-                  namespace={data?.metadata?.namespace}
+                  name={getName(data)}
+                  namespace={getNamespace(data)}
                 />
               </dd>
               <dt>Annotations</dt>
@@ -188,7 +192,7 @@ const DetailsComponent: React.FC<DetailsComponentProps> = (props) => {
                 <ResourceLink
                   kind={PersistentVolumeClaimModel.kind}
                   name={data?.spec?.source?.name}
-                  namespace={data?.metadata?.namespace}
+                  namespace={getNamespace(data)}
                 />
               </dd>
             </dl>
@@ -198,7 +202,7 @@ const DetailsComponent: React.FC<DetailsComponentProps> = (props) => {
     </div>
   );
 };
-interface VolumeSnapshotTableRowProps {
+type VolumeSnapshotTableRowProps = {
   obj: K8sResourceKind;
   index: number;
   key?: string;
@@ -217,7 +221,7 @@ const VolumeSnapshotTableRow: React.FC<VolumeSnapshotTableRowProps> = ({
         <VolumeSnapshotLink
           kind={volumeSnapshotKind}
           name={getName(obj)}
-          namespace={obj?.metadata?.namespace}
+          namespace={getNamespace(obj)}
           pvc={obj?.spec?.source?.name}
           details={VolumeSnapshotDetails}
         />
@@ -262,18 +266,31 @@ export const VolumeSnapshotLink = (props) => {
   );
 };
 
-export const VolumeSnapshotPage = (props) => {
-  const { pvcObj } = props;
-  const namespace = pvcObj?.metadata?.namespace;
+export const VolumeSnapshotPage = ({ name, namespace, ...props }) => {
   return (
+
     <ListPage
-      {...props}
       canCreate
       kind={volumeSnapshotKind}
       ListComponent={VolumeSnapshotList}
       showTitle={false}
       namespace={namespace}
-      createHandler={() => volumeSnapshotModal({ resource: props.pvcObj })}
+      createHandler={() => {
+        return (
+          <Firehose resources={[
+            {
+              name: name,
+              namespace: namespace,
+              kind: referenceFor(PersistentVolumeClaimModel),
+              prop: 'obj'
+            },
+          ]}>
+            {volumeSnapshotModal({ ...props })}
+          </Firehose>
+        )
+
+      }}
     />
+
   );
 };
