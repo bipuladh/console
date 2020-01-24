@@ -103,17 +103,18 @@ type VolumeSnapshotModalWithFireHoseProps = {
   namespace: string;
   kind: K8sResourceKindReference;
   pvcData: FirehoseResourcesResult;
+  resource?: K8sResourceKind;
 } & ModalComponentProps;
 
 const VolumeSnapshotModalWithFireHose: React.FC<VolumeSnapshotModalWithFireHoseProps> = (props) => (
   <Firehose
     resources={[
       {
-        kind: props.kind,
-        prop: 'data',
-        namespace: props.namespace,
+        kind: props.kind || PersistentVolumeClaimModel.kind,
+        prop: 'pvcData',
+        namespace: props?.resource?.metadata?.namespace || props.namespace,
         isList: false,
-        name: props.name,
+        name: props?.resource?.metadata?.name || props.name,
       },
     ]}
   >
