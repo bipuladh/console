@@ -24,7 +24,7 @@ import { PersistentVolumeClaimModel } from '@console/internal/models';
 import { VolumeSnapshotModel } from '../../../models';
 
 export type VolumeSnapshotModalProps = {
-  pvcData: FirehoseResourcesResult;
+  pvcData?: FirehoseResourcesResult;
 } & HandlePromiseProps &
   ModalComponentProps;
 
@@ -102,7 +102,7 @@ type VolumeSnapshotModalWithFireHoseProps = {
   name: string;
   namespace: string;
   kind: K8sResourceKindReference;
-  pvcData: FirehoseResourcesResult;
+  pvcData?: FirehoseResourcesResult;
   resource?: K8sResourceKind;
 } & ModalComponentProps;
 
