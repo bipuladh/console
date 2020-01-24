@@ -6,9 +6,11 @@ import {
   Dropdown,
   HandlePromiseProps,
   withHandlePromise,
+  Firehose,
+  FirehoseResourcesResult,
 } from '@console/internal/components/utils';
 import { Form, FormGroup, TextInput } from '@patternfly/react-core';
-import { K8sResourceKind, k8sCreate } from '@console/internal/module/k8s';
+import { K8sResourceKind, k8sCreate, K8sResourceKindReference } from '@console/internal/module/k8s';
 import {
   ModalBody,
   ModalComponentProps,
@@ -22,17 +24,13 @@ import { PersistentVolumeClaimModel } from '@console/internal/models';
 import { VolumeSnapshotModel } from '../../../models';
 
 export type VolumeSnapshotModalProps = {
-  resource?: {
-    obj: {
-      data: K8sResourceKind;
-    };
-  };
+  pvcData: FirehoseResourcesResult;
 } & HandlePromiseProps &
   ModalComponentProps;
 
 export const VolumeSnapshotModal = withHandlePromise((props: VolumeSnapshotModalProps) => {
-  const { close, cancel, resource, errorMessage, inProgress, handlePromise } = props;
-  console.log(resource.obj.data);
+  const { close, cancel, pvcData, errorMessage, inProgress, handlePromise } = props;
+  const resource = pvcData.data as K8sResourceKind;
   const [snapshotName, setSnapshotName] = React.useState(
     `${getName(resource) || 'pvc'}-snapshot-1`,
   );
@@ -62,8 +60,7 @@ export const VolumeSnapshotModal = withHandlePromise((props: VolumeSnapshotModal
         },
       },
     };
-    handlePromise(k8sCreate(VolumeSnapshotModel, snapshotTemplate))
-      .then(close);
+    handlePromise(k8sCreate(VolumeSnapshotModel, snapshotTemplate)).then(close);
   };
 
   return (
@@ -101,4 +98,27 @@ export const VolumeSnapshotModal = withHandlePromise((props: VolumeSnapshotModal
   );
 });
 
-export const volumeSnapshotModal = createModalLauncher(VolumeSnapshotModal);
+type VolumeSnapshotModalWithFireHoseProps = {
+  name: string;
+  namespace: string;
+  kind: K8sResourceKindReference;
+  pvcData: FirehoseResourcesResult;
+} & ModalComponentProps;
+
+const VolumeSnapshotModalWithFireHose: React.FC<VolumeSnapshotModalWithFireHoseProps> = (props) => (
+  <Firehose
+    resources={[
+      {
+        kind: props.kind,
+        prop: 'data',
+        namespace: props.namespace,
+        isList: false,
+        name: props.name,
+      },
+    ]}
+  >
+    <VolumeSnapshotModal {...props} />
+  </Firehose>
+);
+
+export const volumeSnapshotModal = createModalLauncher(VolumeSnapshotModalWithFireHose);

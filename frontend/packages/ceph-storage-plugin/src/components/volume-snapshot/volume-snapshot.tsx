@@ -85,7 +85,7 @@ const volumeSnapshotKind = referenceFor(VolumeSnapshotModel);
 
 type VolumeSnapshotDetailsProps = {
   match: match<{ ns: string; name: string; appName: string }>;
-}
+};
 
 export const VolumeSnapshotDetails: React.FC<VolumeSnapshotDetailsProps> = (props) => {
   const { match: pvcObj } = props;
@@ -96,7 +96,7 @@ export const VolumeSnapshotDetails: React.FC<VolumeSnapshotDetailsProps> = (prop
           name: pvcObj.params.name,
           namespace: pvcObj.params.ns,
           kind: referenceFor(VolumeSnapshotModel),
-          prop: 'obj'
+          prop: 'obj',
         },
       ]}
     >
@@ -207,7 +207,7 @@ type VolumeSnapshotTableRowProps = {
   index: number;
   key?: string;
   style: object;
-}
+};
 
 const VolumeSnapshotTableRow: React.FC<VolumeSnapshotTableRowProps> = ({
   obj,
@@ -266,31 +266,15 @@ export const VolumeSnapshotLink = (props) => {
   );
 };
 
-export const VolumeSnapshotPage = ({ name, namespace, ...props }) => {
+export const VolumeSnapshotPage = (props) => {
   return (
-
     <ListPage
       canCreate
       kind={volumeSnapshotKind}
       ListComponent={VolumeSnapshotList}
       showTitle={false}
-      namespace={namespace}
-      createHandler={() => {
-        return (
-          <Firehose resources={[
-            {
-              name: name,
-              namespace: namespace,
-              kind: referenceFor(PersistentVolumeClaimModel),
-              prop: 'obj'
-            },
-          ]}>
-            {volumeSnapshotModal({ ...props })}
-          </Firehose>
-        )
-
-      }}
+      namespace={props.namespace}
+      createHandler={() => volumeSnapshotModal({ ...props })}
     />
-
   );
 };

@@ -18,6 +18,8 @@ namespace ExtensionProperties {
     kind: K8sResourceKindReference;
     /** The namespace scope. */
     namespace: string;
+    /** Name of the additional tab inside detailsPage  */
+    name: string;
   }> & {
     /** The href for the additional page */
     href: string;
