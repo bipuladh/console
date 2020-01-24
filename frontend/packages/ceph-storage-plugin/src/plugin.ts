@@ -1,28 +1,35 @@
 import * as _ from 'lodash';
-import {
-  DashboardsCard,
-  DashboardsTab,
-  DashboardsOverviewHealthPrometheusSubsystem,
-  ModelFeatureFlag,
-  ModelDefinition,
-  Plugin,
-  RoutePage,
-  ClusterServiceVersionAction,
-  DashboardsOverviewUtilizationItem,
-  ActionFeatureFlag,
-} from '@console/plugin-sdk';
-import { GridPosition } from '@console/shared/src/components/dashboard/DashboardGrid';
-import { OverviewQuery } from '@console/internal/components/dashboard/dashboards-page/cluster-dashboard/queries';
-import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager/src/models';
-import { referenceForModel } from '@console/internal/module/k8s';
 import * as models from './models';
+
 import {
   CAPACITY_USAGE_QUERIES,
-  StorageDashboardQuery,
   STORAGE_HEALTH_QUERIES,
+  StorageDashboardQuery,
 } from './constants/queries';
+import {
+  ClusterServiceVersionAction,
+  DashboardsCard,
+  DashboardsOverviewHealthPrometheusSubsystem,
+  DashboardsOverviewUtilizationItem,
+  DashboardsTab,
+  FeatureFlag,
+  KebabActions,
+  ModelDefinition,
+  ModelFeatureFlag,
+  Plugin,
+  ResourceTabPage,
+  RoutePage,
+  ResourceDetailsPage,
+} from '@console/plugin-sdk';
+import { OCS_INDEPENDENT_FLAG, detectIndependentMode } from './features';
+
+import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager/src/models';
+import { GridPosition } from '@console/shared/src/components/dashboard/DashboardGrid';
+import { OverviewQuery } from '@console/internal/components/dashboard/dashboards-page/cluster-dashboard/queries';
+import { PersistentVolumeClaimModel } from '@console/internal/models';
 import { getCephHealthState } from './components/dashboard-page/storage-dashboard/status-card/utils';
-import { detectIndependentMode, OCS_INDEPENDENT_FLAG } from './features';
+import { getKebabActionsForKind } from './utils/kebab-actions';
+import { referenceForModel, referenceFor } from '@console/internal/module/k8s';
 
 type ConsumedExtensions =
   | ModelFeatureFlag
@@ -32,8 +39,11 @@ type ConsumedExtensions =
   | DashboardsOverviewHealthPrometheusSubsystem
   | DashboardsOverviewUtilizationItem
   | RoutePage
-  | ActionFeatureFlag
-  | ClusterServiceVersionAction;
+  | ResourceDetailsPage
+  | ResourceTabPage
+  | ClusterServiceVersionAction
+  | KebabActions
+  | FeatureFlag;
 
 const CEPH_FLAG = 'CEPH';
 
@@ -51,6 +61,18 @@ const plugin: Plugin<ConsumedExtensions> = [
     properties: {
       model: models.OCSServiceModel,
       flag: CEPH_FLAG,
+    },
+  },
+  {
+    type: 'Page/Resource/Tab',
+    properties: {
+      href: 'volumesnapshots',
+      model: PersistentVolumeClaimModel,
+      name: 'Volume Snapshots',
+      loader: () =>
+        import('./components/volume-snapshot/volume-snapshot').then(
+          (m) => m.VolumeSnapshotPage,
+        ) /* webpackChunkName: "ceph-storage-volume-snapshot" */,
     },
   },
   {
@@ -274,6 +296,23 @@ const plugin: Plugin<ConsumedExtensions> = [
           './components/dashboard-page/storage-dashboard/activity-card/activity-card' /* webpackChunkName: "ceph-storage-activity-card" */
         ).then((m) => m.ActivityCard),
       required: OCS_INDEPENDENT_FLAG,
+    },
+  },
+  {
+    type: 'Page/Resource/Details',
+    properties: {
+      model: models.VolumeSnapshotModel,
+      loader: async () =>
+        import(
+          './components/volume-snapshot/volume-snapshot' /* webpackChunkName: "ceph-storage-volume-snapshot-details" */
+        ).then((m) => m.VolumeSnapshotDetails),
+      modelParser: referenceFor,
+    },
+  },
+  {
+    type: 'KebabActions',
+    properties: {
+      getKebabActionsForKind,
     },
   },
 ];

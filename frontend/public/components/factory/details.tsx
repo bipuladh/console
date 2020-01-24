@@ -2,21 +2,47 @@ import * as React from 'react';
 import { match } from 'react-router-dom';
 import * as _ from 'lodash-es';
 import { getBadgeFromType } from '@console/shared';
+import { useExtensions, ResourceTabPage, isResourceTabPage } from '@console/plugin-sdk';
 import {
   Firehose,
   HorizontalNav,
   PageHeading,
   FirehoseResource,
   KebabOptionsCreator,
+  AsyncComponent,
 } from '../utils';
-import { K8sResourceKindReference, K8sResourceKind, K8sKind } from '../../module/k8s';
+import {
+  K8sResourceKindReference,
+  K8sResourceKind,
+  K8sKind,
+  referenceForModel,
+  referenceFor,
+} from '../../module/k8s';
 import { withFallback } from '../utils/error-boundary';
 import { ErrorBoundaryFallback } from '../error';
 import { breadcrumbsForDetailsPage } from '../utils/breadcrumbs';
 
 export const DetailsPage = withFallback<DetailsPageProps>((props) => {
   const resourceKeys = _.map(props.resources, 'prop');
-
+  const resourcePageExtensions = useExtensions<ResourceTabPage>(isResourceTabPage);
+  const pages = [
+    ...props.pages,
+    ...resourcePageExtensions
+      .filter((page) => referenceForModel(page.properties.model) === referenceFor(props.kindObj))
+      .map((p) => ({
+        href: p.properties.href,
+        name: p.properties.name,
+        component: () => (
+          <AsyncComponent
+            loader={p.properties.loader}
+            namespace={props.namespace}
+            name={props.name}
+            kind={props.kind}
+            match={props.match}
+          />
+        ),
+      })),
+  ];
   return (
     <Firehose
       resources={[
@@ -51,7 +77,7 @@ export const DetailsPage = withFallback<DetailsPageProps>((props) => {
         {props.children}
       </PageHeading>
       <HorizontalNav
-        pages={props.pages}
+        pages={pages}
         pagesFor={props.pagesFor}
         className={`co-m-${_.get(props.kind, 'kind', props.kind)}`}
         match={props.match}
