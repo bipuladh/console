@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "workspaces": [
+    "dynamic-plugin-sdk",
+    "example-plugin"
+  ]
+}

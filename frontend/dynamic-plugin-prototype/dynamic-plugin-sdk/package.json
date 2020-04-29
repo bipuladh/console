@@ -1,0 +1,21 @@
+{
+  "name": "@openshift/console-dynamic-plugin-sdk",
+  "version": "0.0.1",
+  "description": "Tools and APIs for building OpenShift Console dynamic plugins",
+  "license": "Apache-2.0",
+  "files": [
+    "static",
+    "dist/*.js"
+  ],
+  "main": "dist/main.js",
+  "exports": "dist/main.js",
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "yarn clean && tsc && cp -r static/* dist"
+  },
+  "devDependencies": {
+    "@types/node": "9.6.52",
+    "typescript": "3.8.3",
+    "webpack": "5.0.0-beta.16"
+  }
+}

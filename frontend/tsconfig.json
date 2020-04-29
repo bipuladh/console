@@ -17,6 +17,6 @@
     },
     "typeRoots": ["node_modules/@types", "@types"]
   },
-  "exclude": [".yarn", "**/node_modules", "public/dist"],
+  "exclude": [".yarn", "**/node_modules", "public/dist", "dynamic-plugin-prototype"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx", "**/*.json"]
 }

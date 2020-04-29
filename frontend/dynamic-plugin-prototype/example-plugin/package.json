@@ -1,0 +1,25 @@
+{
+  "name": "@openshift/console-example-plugin",
+  "version": "0.0.1",
+  "description": "Console dynamic plugin example",
+  "private": true,
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "yarn clean && yarn ts-node ./node_modules/.bin/webpack",
+    "test-server": "yarn http-server ./dist -p 9001",
+    "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
+  },
+  "dependencies": {
+    "@openshift/console-dynamic-plugin-sdk": "0.0.1",
+    "react": "16.9.0"
+  },
+  "devDependencies": {
+    "@types/react": "16.8.13",
+    "http-server": "0.12.3",
+    "ts-loader": "6.2.2",
+    "ts-node": "5.0.1",
+    "typescript": "3.8.3",
+    "webpack": "5.0.0-beta.16",
+    "webpack-cli": "3.3.9"
+  }
+}

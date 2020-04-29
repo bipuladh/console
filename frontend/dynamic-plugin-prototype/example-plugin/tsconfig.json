@@ -1,0 +1,7 @@
+{
+  "extends": "../dynamic-plugin-sdk/static/tsconfig-recommended.json",
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "include": ["src"]
+}
