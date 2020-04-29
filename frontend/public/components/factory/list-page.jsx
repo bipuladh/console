@@ -273,21 +273,19 @@ export const FireMan_ = connect(null, { filterList })(
           {/* Badge rendered from PageHeading only when title is present */}
           <PageHeading
             title={title}
-            badge={badge}
+            badge={title ? badge : null}
             className={classNames({ 'co-m-nav-title--row': createLink })}
           >
             {createLink && (
               <div
-                className={
-                  title
-                    ? 'co-m-pane__createLink co-m-pane__resource-bar--inline'
-                    : 'co-m-pane__resource-bar--no-title'
-                }
+                className={classNames('co-m-pane__createLink', {
+                  'co-m-pane__createLink--no-title': !title,
+                })}
               >
                 {createLink}
               </div>
             )}
-            {!title && badge && <div className="co-m-pane__resource-bar-group--badge">{badge}</div>}
+            {!title && badge && <div>{badge}</div>}
           </PageHeading>
           {helpText && <p className="co-m-pane__help-text co-help-text">{helpText}</p>}
           <div className="co-m-pane__body co-m-pane__body--no-top-margin">
