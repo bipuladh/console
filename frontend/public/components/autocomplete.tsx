@@ -8,9 +8,9 @@ import { TextFilter } from './factory';
 
 const MAX_SUGGESTIONS = 5;
 
-const labelParser = (resources: K8sResourceCommon[]): Set<string> => {
+const labelParser = (resources: K8sResourceCommon[], labelPath: string): Set<string> => {
   return resources.reduce((acc: Set<string>, resource: K8sResourceCommon) => {
-    getLabelsAsString(resource).forEach((label) => acc.add(label));
+    getLabelsAsString(resource, labelPath).forEach((label) => acc.add(label));
     return acc;
   }, new Set<string>());
 };
@@ -56,7 +56,7 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = (props) => {
 
   React.useEffect(() => {
     if (textValue && visible && showSuggestions) {
-      const processed = labelParser(data);
+      const processed = labelParser(data, props.labelPath);
       const filtered = [...processed]
         .filter((item) => fuzzyCaseInsensitive(textValue, item))
         .slice(0, MAX_SUGGESTIONS);
@@ -106,6 +106,7 @@ type AutocompleteInputProps = {
   setTextValue: React.Dispatch<React.SetStateAction<String>>;
   className?: string;
   data?: any;
+  labelPath?: string;
 };
 
 const SuggestionLine: React.FC<SuggestionLineProps> = ({ suggestion, onClick, className }) => {

@@ -248,11 +248,7 @@ export const FireMan_ = connect(null, { filterList })(
             className={classNames({ 'co-m-nav-title--row': createLink })}
           >
             {createLink && (
-              <div
-                className={classNames('co-m-pane__createLink', {
-                  'co-m-pane__createLink--no-title': !title,
-                })}
-              >
+              <div className={classNames({ 'co-m-pane__createLink--no-title': !title })}>
                 {createLink}
               </div>
             )}
@@ -264,7 +260,6 @@ export const FireMan_ = connect(null, { filterList })(
               resources,
               expand: this.state.expand,
               reduxIDs: this.state.reduxIDs,
-              applyFilter: this.applyFilter,
             })}
           </div>
         </>

@@ -84,6 +84,7 @@ const FilterToolbar_: React.FC<FilterToolbarProps & RouteComponentProps> = (prop
     hideLabelFilter,
     location,
     textFilter = filterTypeMap[FilterType.NAME],
+    labelFilter = filterTypeMap[FilterType.LABEL],
   } = props;
 
   const [inputText, setInputText] = React.useState('');
@@ -119,8 +120,12 @@ const FilterToolbar_: React.FC<FilterToolbarProps & RouteComponentProps> = (prop
   const { name: nameFilter, labels: labelFilters, rowFiltersFromURL: selectedRowFilters } = (() => {
     const rowFiltersFromURL: string[] = [];
     const params = new URLSearchParams(location.search);
-    const q = params.get('label');
-    const name = params.get(textFilter);
+    const q = params.get(labelFilter);
+    const name = params.get(textFilter) ?? '';
+    // Monitoring pages handles URL externally
+    if (props.applyFilter && filterType === FilterType.NAME) {
+      name !== inputText && setInputText(name);
+    }
     _.map(filterKeys, (f) => {
       const vals = params.get(f);
       if (vals) {
@@ -134,16 +139,16 @@ const FilterToolbar_: React.FC<FilterToolbarProps & RouteComponentProps> = (prop
   /* Logic for Name and Label Filter */
 
   const applyFilter = (input: string | string[], type: FilterType) => {
-    const filter = type === FilterType.NAME ? textFilter : filterTypeMap[FilterType.LABEL];
+    const filter = type === FilterType.NAME ? textFilter : labelFilter;
     const value = type === FilterType.NAME ? input : { all: input };
     props.reduxIDs.forEach((id) => props.filterList(id, filter, value));
   };
 
   const updateLabelFilter = (filterValues: string[]) => {
     if (filterValues.length > 0) {
-      setQueryArgument('label', filterValues.join(','));
+      setQueryArgument(labelFilter, filterValues.join(','));
     } else {
-      removeQueryArgument('label');
+      removeQueryArgument(labelFilter);
     }
     setInputText('');
     applyFilter(filterValues, FilterType.LABEL);
@@ -160,9 +165,10 @@ const FilterToolbar_: React.FC<FilterToolbarProps & RouteComponentProps> = (prop
   };
 
   const updateSearchFilter = (value: string) => {
+    // If it is handled externally then do nothing
     switch (filterType) {
       case FilterType.NAME:
-        updateNameFilter(value);
+        props.applyFilter ? props.applyFilter(value) : updateNameFilter(value);
         break;
       case FilterType.LABEL:
         setInputText(value);
@@ -217,12 +223,14 @@ const FilterToolbar_: React.FC<FilterToolbarProps & RouteComponentProps> = (prop
   };
 
   const clearAll = () => {
+    props.applyFilter ? props.applyFilter('') : updateNameFilter('');
+    if (!hideLabelFilter) {
+      updateLabelFilter([]);
+    }
     updateRowFilterSelected(selectedRowFilters);
-    updateNameFilter('');
-    updateLabelFilter([]);
   };
 
-  // Initial URL parsing
+  // Initial URL parsig
   React.useEffect(() => {
     !_.isEmpty(labelFilters) && applyFilter(labelFilters, FilterType.LABEL);
     !_.isEmpty(nameFilter) && applyFilter(nameFilter, FilterType.NAME);
@@ -313,6 +321,7 @@ const FilterToolbar_: React.FC<FilterToolbarProps & RouteComponentProps> = (prop
                       FilterType.NAME === filterType ? 'Search by name...' : 'app=frontend'
                     }
                     data={data}
+                    labelPath={props.labelPath}
                   />
                 </div>
               </DataToolbarFilter>
@@ -330,10 +339,15 @@ type FilterToolbarProps = {
   reduxIDs?: string[];
   filterList?: any;
   textFilter?: string;
+  labelFilter?: string;
   hideToolbar?: boolean;
   hideLabelFilter?: boolean;
   parseAutoComplete?: any;
   kinds?: any;
+  // URL parsing not handled by toolbar if applyFilter is being used for name filters
+  // Todo: Fix this by removing URL logic in monitoring page
+  applyFilter?: any;
+  labelPath?: string;
 };
 
 export type RowFilter = {

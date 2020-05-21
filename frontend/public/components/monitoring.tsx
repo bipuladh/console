@@ -50,13 +50,12 @@ import {
   SilenceStates,
 } from '../reducers/monitoring';
 import store, { RootState } from '../redux';
-import { RowFunction, Table, TableData, TableRow, TextFilter } from './factory';
+import { RowFunction, Table, TableData, TableRow } from './factory';
 import { confirmModal } from './modals';
 import MonitoringDashboardsPage from './monitoring/dashboards';
 import { graphStateToProps, QueryBrowserPage, ToggleGraph } from './monitoring/metrics';
 import { PrometheusLabels } from './graphs';
 import { QueryBrowser, QueryObj } from './monitoring/query-browser';
-import { CheckBoxes } from './row-filter';
 import { AlertmanagerYAMLEditorWrapper } from './monitoring/alert-manager-yaml-editor';
 import { AlertmanagerConfigWrapper } from './monitoring/alert-manager-config';
 import { refreshNotificationPollers } from './notification-drawer';
@@ -77,6 +76,7 @@ import {
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@console/shared';
+import { FilterToolbar, RowFilter } from './filter-toolbar';
 
 const AlertResource = {
   kind: 'Alert',
@@ -1025,9 +1025,9 @@ const HeaderAlertmanagerLink = ({ path }) =>
     </span>
   );
 
-const alertsRowFilter = {
+const alertsRowFilter: RowFilter = {
   type: 'alert-state',
-  selected: [AlertStates.Firing, AlertStates.Silenced, AlertStates.Pending],
+  filterGroupName: 'Alert',
   reducer: alertState,
   items: [
     { id: AlertStates.Firing, title: 'Firing' },
@@ -1099,28 +1099,21 @@ const MonitoringListPage = connect(filtersToProps)(
           <Helmet>
             <title>Alerting</title>
           </Helmet>
-          <div className="co-m-pane__filter-bar">
+          <div className="co-m-pane__body">
             {CreateButton && (
-              <div className="co-m-pane__filter-bar-group">
+              <div className="co-m-pane__createLink co-m-pane__createLink--no-title">
                 <CreateButton />
               </div>
             )}
-            <div className="co-m-pane__filter-bar-group co-m-pane__filter-bar-group--filter">
-              <TextFilter
-                defaultValue={this.defaultNameFilter}
-                label={`${kindPlural} by name`}
-                onChange={this.applyTextFilter}
-              />
-            </div>
-          </div>
-          <div className="co-m-pane__body">
-            <CheckBoxes
-              items={rowFilter.items}
-              itemCount={_.size(data)}
-              numbers={_.countBy(data, rowFilter.reducer)}
+            <FilterToolbar
+              rowFilters={[rowFilter]}
+              data={data}
               reduxIDs={[reduxID]}
-              selected={rowFilter.selected}
-              type={rowFilter.type}
+              applyFilter={this.applyTextFilter}
+              textFilter={this.props.nameFilterID}
+              labelFilter={this.props.labelFilter}
+              hideLabelFilter={this.props.hideLabelFilter}
+              labelPath={this.props.labelPath}
             />
             <div className="row">
               <div className="col-xs-12">
@@ -1153,13 +1146,15 @@ const AlertsPage_ = (props) => (
     reduxID="monitoringAlerts"
     Row={AlertTableRow}
     rowFilter={alertsRowFilter}
+    labelFilter="alert-list-label"
+    labelPath="labels"
   />
 );
 const AlertsPage = withFallback(connect(alertsToProps)(AlertsPage_));
 
-const rulesRowFilter = {
+const rulesRowFilter: RowFilter = {
   type: 'alerting-rule-active',
-  selected: ['true', 'false'],
+  filterGroupName: 'Alerts',
   reducer: alertingRuleIsActive,
   items: [
     { id: 'true', title: 'Active' },
@@ -1219,16 +1214,18 @@ const RulesPage_ = (props) => (
     Header={ruleTableHeader}
     kindPlural="Alerting Rules"
     nameFilterID="alerting-rule-name"
+    labelFilter="alerting-rule-label"
     reduxID="monitoringRules"
     Row={RuleTableRow}
     rowFilter={rulesRowFilter}
+    labelPath="labels"
   />
 );
 const RulesPage = withFallback(connect(rulesToProps)(RulesPage_));
 
-const silencesRowFilter = {
+const silencesRowFilter: RowFilter = {
   type: 'silence-state',
-  selected: [SilenceStates.Active, SilenceStates.Pending],
+  filterGroupName: 'Silence',
   reducer: silenceState,
   items: [
     { id: SilenceStates.Active, title: 'Active' },
@@ -1253,6 +1250,7 @@ const SilencesPage_ = (props) => (
     reduxID="monitoringSilences"
     Row={SilenceTableRow}
     rowFilter={silencesRowFilter}
+    hideLabelFiler
   />
 );
 const SilencesPage = withFallback(connect(silencesToProps)(SilencesPage_));
@@ -1911,15 +1909,13 @@ export type ListPageProps = {
   loadError?: string;
   match: { path: string };
   nameFilterID: string;
+  labelFilter?: string;
   reduxID: string;
   Row: RowFunction;
-  rowFilter: {
-    type: string;
-    selected: string[];
-    reducer: (any) => string;
-    items: { id: string; title: string }[];
-  };
+  rowFilter: RowFilter;
   showTitle?: boolean;
+  hideLabelFilter?: boolean;
+  labelPath?: string;
 };
 
 type AlertingPageProps = {
