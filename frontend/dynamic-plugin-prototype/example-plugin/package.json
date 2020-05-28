@@ -1,13 +1,24 @@
 {
   "name": "@openshift/console-example-plugin",
   "version": "0.0.1",
-  "description": "Console dynamic plugin example",
   "private": true,
   "scripts": {
     "clean": "rm -rf ./dist",
     "build": "yarn clean && yarn ts-node ./node_modules/.bin/webpack",
-    "test-server": "yarn http-server ./dist -p 9001",
+    "test-server": "yarn http-server ./dist -p 9001 -c-1 --cors",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
+  },
+  "consolePlugin": {
+    "displayName": "Example Plugin",
+    "description": "Plasma reactors online. Initiating hyper drive.",
+    "exposedModules": {
+      "barUtils": "./utils/bar"
+    },
+    "dependencies": {
+      "@console/pluginAPI": "~0.0.1",
+      "@openshift/foo": "^1.2.3",
+      "@openshift/bar": "=4.5.6"
+    }
   },
   "dependencies": {
     "@openshift/console-dynamic-plugin-sdk": "0.0.1",

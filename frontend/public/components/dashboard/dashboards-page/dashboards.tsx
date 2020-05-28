@@ -20,6 +20,8 @@ import {
 } from '@console/plugin-sdk';
 import { RootState } from '../../../redux';
 
+import { fetchPluginManifest, loadDynamicPlugin } from '@console/plugin-sdk/src/dynamic-plugins';
+
 const getCardsOnPosition = (cards: DashboardsCard[], position: GridPosition): GridDashboardCard[] =>
   cards
     .filter((c) => c.properties.position === position)
@@ -92,3 +94,12 @@ type DashboardsPageProps = RouteComponentProps & {
   kindsInFlight: boolean;
   k8sModels: ImmutableMap<string, any>;
 };
+
+const baseURL = 'http://localhost:9001';
+fetchPluginManifest(baseURL)
+  .then((manifest) => {
+    loadDynamicPlugin(baseURL, manifest);
+  })
+  .catch((error) => {
+    console.error(error);
+  });

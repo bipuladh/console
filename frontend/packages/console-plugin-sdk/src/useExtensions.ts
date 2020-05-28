@@ -3,6 +3,7 @@ import * as React from 'react';
 // @ts-ignore: FIXME missing exports due to out-of-sync @types/react-redux version
 import { useSelector } from 'react-redux';
 import { createSelectorCreator, defaultMemoize } from 'reselect';
+import * as _ from 'lodash';
 import { RootState } from '@console/internal/redux';
 import { stateToFlagsObject, FlagsObject, FeatureState } from '@console/internal/reducers/features';
 import { pluginStore } from '@console/internal/plugins';
@@ -12,8 +13,8 @@ import { Extension, ExtensionTypeGuard } from './typings';
 /**
  * React hook for consuming Console extensions.
  *
- * This hook takes extension type guard as its only argument and returns a list
- * of extension instances, narrowed by the given type guard, which are currently
+ * This hook takes extension type guard(s) as its argument(s) and returns a list
+ * of extension instances, narrowed by the given type guard(s), which are currently
  * in use.
  *
  * An extension is considered to be in use when
@@ -40,21 +41,35 @@ import { Extension, ExtensionTypeGuard } from './typings';
  * };
  * ```
  *
- * @param typeGuard Type guard used to narrow the extension type.
+ * @param typeGuards Type guard(s) used to narrow the extension instances.
  */
-export const useExtensions: UseExtensions = (typeGuard) => {
-  const allExtensions = pluginStore.getAllExtensions();
+export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeGuard<E>[]): E[] => {
+  if (typeGuards.length === 0) {
+    throw new Error('You must pass at least one type guard to useExtensions');
+  }
 
-  // 1) Narrow extensions according to type guard
-  const matchedExtensions = React.useMemo(() => allExtensions.filter(typeGuard), [
-    allExtensions,
-    typeGuard,
-  ]);
+  // Subscribe to extension list changes
+  const forceRender = React.useReducer((s: boolean) => !s, false)[1] as () => void;
+  const allExtensionsRef = React.useRef([] as Extension[]);
 
-  // 2) Compute flags relevant for gating matched extensions
+  React.useEffect(() => {
+    return pluginStore.subscribe(() => {
+      allExtensionsRef.current = pluginStore.getAllExtensions();
+      forceRender();
+    });
+  }, []);
+
+  // Narrow extensions according to type guards
+  const matchedExtensions = React.useMemo(
+    () => _.flatMap(typeGuards.map((tg) => allExtensionsRef.current.filter(tg))),
+    [typeGuards],
+  );
+
+  // Compute flags relevant for gating matched extensions
   const gatingFlagNames = React.useMemo(() => getGatingFlagNames(matchedExtensions), [
     matchedExtensions,
   ]);
+
   const gatingFlagSelectorCreator = React.useMemo(
     () =>
       createSelectorCreator(
@@ -64,6 +79,7 @@ export const useExtensions: UseExtensions = (typeGuard) => {
       ),
     [gatingFlagNames],
   );
+
   const gatingFlagSelector = React.useMemo(
     () =>
       gatingFlagSelectorCreator(
@@ -72,9 +88,10 @@ export const useExtensions: UseExtensions = (typeGuard) => {
       ),
     [gatingFlagSelectorCreator, gatingFlagNames],
   );
+
   const gatingFlags = useSelector<RootState, FlagsObject>(gatingFlagSelector);
 
-  // 3) Gate matched extensions by relevant feature flags
+  // Gate matched extensions by relevant feature flags
   const extensionsInUse = React.useMemo(
     () => matchedExtensions.filter((e) => isExtensionInUse(e, gatingFlags)),
     [matchedExtensions, gatingFlags],
@@ -82,5 +99,3 @@ export const useExtensions: UseExtensions = (typeGuard) => {
 
   return extensionsInUse;
 };
-
-type UseExtensions = <E extends Extension>(typeGuard: ExtensionTypeGuard<E>) => E[];

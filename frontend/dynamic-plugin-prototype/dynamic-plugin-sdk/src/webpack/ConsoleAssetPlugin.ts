@@ -1,22 +1,61 @@
 import * as webpack from 'webpack';
-import { ConsolePluginMetadata } from '../types';
+import * as path from 'path';
+import { ConsolePackageJSON } from '../schema/plugin-package';
+import {
+  ConsoleExtensionsJSON,
+  extensionsFile,
+  validateExtensionsFile,
+} from '../schema/console-extensions';
+import { ConsolePluginManifestJSON, pluginManifestFile } from '../schema/plugin-manifest';
+import { ExtensionValidator } from '../validation/ExtensionValidator';
 
-class ConsoleAssetPlugin {
-  constructor(private readonly options: PluginOptions) {}
+const emitJSON = (compilation: webpack.Compilation, filename: string, data: any) => {
+  const source = JSON.stringify(data, null, 2);
+
+  // @ts-ignore-next-line
+  compilation.emitAsset(filename, {
+    source: () => source,
+    size: () => source.length,
+  });
+};
+
+export class ConsoleAssetPlugin {
+  private readonly manifest: ConsolePluginManifestJSON;
+
+  constructor(private readonly pkg: ConsolePackageJSON) {
+    const ext = require<ConsoleExtensionsJSON>(path.resolve(process.cwd(), extensionsFile));
+    validateExtensionsFile(ext).reportToConsole(true);
+
+    this.manifest = {
+      name: pkg.name,
+      version: pkg.version,
+      displayName: pkg.consolePlugin.displayName,
+      description: pkg.consolePlugin.description,
+      dependencies: pkg.consolePlugin.dependencies,
+      extensions: ext.data,
+    };
+  }
 
   apply(compiler: webpack.Compiler) {
-    compiler.hooks.emit.tap('ConsoleAssetPlugin', (compilation) => {
-      const metadata = JSON.stringify(this.options, null, 2);
+    let success = true;
 
-      // @ts-ignore-next-line
-      compilation.emitAsset('plugin-metadata.json', {
-        source: () => metadata,
-        size: () => metadata.length,
-      });
+    compiler.hooks.afterCompile.tap(ConsoleAssetPlugin.name, (compilation) => {
+      const result = new ExtensionValidator(extensionsFile).validate(
+        compilation,
+        this.manifest.extensions,
+        this.pkg.consolePlugin.exposedModules || {},
+      );
+      if (result.hasErrors()) {
+        // @ts-ignore-next-line
+        compilation.errors.push(new Error(result.formatErrors()));
+        success = false;
+      }
     });
+
+    compiler.hooks.emit.tap(ConsoleAssetPlugin.name, (compilation) => {
+      emitJSON(compilation, pluginManifestFile, this.manifest);
+    });
+
+    compiler.hooks.shouldEmit.tap(ConsoleAssetPlugin.name, () => success);
   }
 }
-
-type PluginOptions = ConsolePluginMetadata;
-
-export default ConsoleAssetPlugin;

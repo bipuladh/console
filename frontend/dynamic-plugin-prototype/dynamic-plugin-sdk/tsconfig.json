@@ -1,3 +1,4 @@
+// TODO: remove this file, SDK package should be part of Console monorepo
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
@@ -5,7 +6,6 @@
     "outDir": "dist",
     "declaration": true,
     "sourceMap": false,
-    "strict": true,
     "types": ["node"]
   },
   "include": ["src"]

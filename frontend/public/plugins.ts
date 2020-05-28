@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 
 import { ActivePlugin, PluginStore } from '@console/plugin-sdk';
+import { registerPluginEntryCallback } from '@console/plugin-sdk/src/dynamic-plugins';
 
 // TODO(vojtech): legacy, remove along with `registry` export
 export * from '@console/plugin-sdk';
@@ -19,6 +20,8 @@ if (process.env.NODE_ENV !== 'test') {
 
 export const pluginStore = new PluginStore(activePlugins);
 export const registry = pluginStore.registry;
+
+registerPluginEntryCallback(pluginStore);
 
 if (process.env.NODE_ENV !== 'production') {
   // Expose Console plugin store for debugging

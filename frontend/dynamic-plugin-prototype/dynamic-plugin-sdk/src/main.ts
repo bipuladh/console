@@ -1,1 +1,2 @@
-export { default as ConsoleRemotePlugin } from './webpack/ConsoleRemotePlugin';
+export * from './types';
+export { ConsoleRemotePlugin } from './webpack/ConsoleRemotePlugin';

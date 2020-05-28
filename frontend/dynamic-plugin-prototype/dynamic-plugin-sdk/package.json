@@ -11,10 +11,20 @@
   "exports": "dist/main.js",
   "scripts": {
     "clean": "rm -rf ./dist",
-    "build": "yarn clean && tsc && cp -r static/* dist"
+    "build": "yarn clean && tsc && yarn schema",
+    "schema": "yarn ts-node ./generate-schema.ts",
+    "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'"
   },
   "devDependencies": {
     "@types/node": "9.6.52",
+    "@types/semver": "6.2.1",
+    "ajv": "6.12.2",
+    "chalk": "2.4.2",
+    "lodash": "4.17.15",
+    "read-pkg": "5.1.0",
+    "semver": "6.3.0",
+    "ts-json-schema-generator": "0.68.0",
+    "ts-node": "5.0.1",
     "typescript": "3.8.3",
     "webpack": "5.0.0-beta.16"
   }

@@ -1,11 +1,7 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
-import * as _ from 'lodash';
-import { RootState } from '@console/internal/redux';
-import { stateToFlagsObject } from '@console/internal/reducers/features';
-import { pluginStore } from '@console/internal/plugins';
-import { getGatingFlagNames, isExtensionInUse } from './store';
+import * as hoistStatics from 'hoist-non-react-statics';
 import { Extension, ExtensionTypeGuard } from './typings';
+import { useExtensions } from './useExtensions';
 
 /**
  * React higher-order component (HOC) for consuming Console extensions.
@@ -48,47 +44,52 @@ import { Extension, ExtensionTypeGuard } from './typings';
  */
 export const withExtensions = <
   TExtensionProps extends ExtensionProps<E>,
-  E extends Extension = Extension
+  E extends Extension = Extension,
+  TCombinedProps extends TExtensionProps = TExtensionProps
 >(
   typeGuardMapper: ExtensionTypeGuardMapper<E, TExtensionProps>,
-): (<P extends TExtensionProps>(
-  C: React.ComponentType<P>,
-) => React.ComponentType<Omit<P, keyof TExtensionProps>> & {
-  WrappedComponent: React.ComponentType<P>;
-}) => {
-  const allExtensions = pluginStore.getAllExtensions();
+): ((C: React.ComponentType<TCombinedProps>) => ExtensionHOC<TCombinedProps, TExtensionProps>) => (
+  WrappedComponent,
+) => {
+  const typeGuards = Object.values(typeGuardMapper);
 
-  // 1) Narrow extensions according to type guards
-  const matchedExtensions = _.flatMap(
-    Object.values(typeGuardMapper).map((tg) => allExtensions.filter(tg)),
-  );
+  if (typeGuards.length === 0) {
+    throw new Error('The object passed to withExtensions must contain at least one type guard');
+  }
 
-  // 2.a) Compute flags relevant for gating matched extensions
-  const gatingFlagNames = getGatingFlagNames(matchedExtensions);
+  const HOC: ExtensionHOC<TCombinedProps, TExtensionProps> = (props) => {
+    const extensionsInUse = useExtensions(...typeGuards);
 
-  return connect<TExtensionProps, any, any, RootState>(
-    (state) => {
-      // 2.b) Compute flags relevant for gating matched extensions
-      const gatingFlags = stateToFlagsObject(state.FLAGS, gatingFlagNames);
+    const extensionProps = React.useMemo(
+      () =>
+        Object.keys(typeGuardMapper).reduce((acc, propName) => {
+          acc[propName] = extensionsInUse.filter(typeGuardMapper[propName]);
+          return acc;
+        }, {} as ExtensionProps<E>),
+      [extensionsInUse],
+    );
 
-      // 3) Gate matched extensions by relevant feature flags
-      const extensionsInUse = matchedExtensions.filter((e) => isExtensionInUse(e, gatingFlags));
+    const combinedProps = React.useMemo(
+      () => ({
+        ...props,
+        ...extensionProps,
+      }),
+      [props, extensionProps],
+    ) as TCombinedProps;
 
-      return Object.keys(typeGuardMapper).reduce(
-        (props, propName) => ({
-          ...props,
-          [propName]: extensionsInUse.filter(typeGuardMapper[propName]),
-        }),
-        {},
-      ) as TExtensionProps;
-    },
-    null,
-    null,
-    {
-      areStatesEqual: ({ FLAGS: next }, { FLAGS: prev }) =>
-        gatingFlagNames.every((f) => next.get(f) === prev.get(f)),
-    },
-  );
+    return <WrappedComponent {...combinedProps} />;
+  };
+
+  HOC.displayName = `withExtensions(${WrappedComponent.displayName || WrappedComponent.name})`;
+  HOC.WrappedComponent = WrappedComponent;
+
+  return hoistStatics(HOC, WrappedComponent);
+};
+
+type ExtensionHOC<TCombinedProps, TExtensionProps> = React.ComponentType<
+  Omit<TCombinedProps, keyof TExtensionProps>
+> & {
+  WrappedComponent: React.ComponentType<TCombinedProps>;
 };
 
 type ExtensionProps<E extends Extension> = {

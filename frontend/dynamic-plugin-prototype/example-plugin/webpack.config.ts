@@ -2,11 +2,8 @@ import * as webpack from 'webpack';
 import * as path from 'path';
 import { ConsoleRemotePlugin } from '@openshift/console-dynamic-plugin-sdk/src/main';
 
-const pkg = require('./package.json');
-
 const config: webpack.Configuration = {
   context: path.resolve(__dirname, 'src'),
-  entry: './plugin.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
     publicPath: 'http://localhost:9001/',
@@ -32,19 +29,7 @@ const config: webpack.Configuration = {
       },
     ],
   },
-  plugins: [
-    new ConsoleRemotePlugin({
-      metadata: {
-        name: pkg.name,
-        version: pkg.version,
-        entry: 'plugin-entry.js',
-      },
-      exposes: {
-        FooComponent: './components/Foo',
-        barUtils: './utils/bar.ts',
-      },
-    }),
-  ],
+  plugins: [new ConsoleRemotePlugin()],
   mode: 'development',
   devtool: 'source-map',
   optimization: {

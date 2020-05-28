@@ -104,6 +104,7 @@
     "fuzzysearch": "1.0.x",
     "graphql": "^14.0.0",
     "history": "4.x",
+    "hoist-non-react-statics": "3.x",
     "immutable": "3.x",
     "js-base64": "^2.5.1",
     "js-yaml": "^3.13.1",
