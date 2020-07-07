@@ -3,6 +3,11 @@ import { Map as ImmutableMap } from 'immutable';
 import * as _ from 'lodash-es';
 
 import {
+  isModelFeatureFlag,
+  subscribeToExtensions,
+  extensionDiffListener,
+} from '@console/plugin-sdk';
+import {
   ChargebackReportModel,
   ClusterServiceClassModel,
   ConsoleCLIDownloadModel,
@@ -15,13 +20,16 @@ import {
   MachineModel,
   PrometheusModel,
 } from '../models';
-import { referenceForModel } from '../module/k8s';
+import { referenceForModel, referenceForGroupVersionKind } from '../module/k8s';
 import { RootState } from '../redux';
 import { ActionType as K8sActionType } from '../actions/k8s';
 import { FeatureAction, ActionType } from '../actions/features';
 import { FLAGS } from '@console/shared/src/constants';
 import { pluginStore } from '../plugins';
-import { isModelFeatureFlag } from '@console/plugin-sdk';
+import {
+  ModelFeatureFlag as DynamicModelFeatureFlag,
+  isModelFeatureFlag as isDynamicModelFeatureFlag,
+} from '../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/extensions/feature-flags';
 
 export const defaults = _.mapValues(FLAGS, (flag) =>
   flag === FLAGS.AUTH_ENABLED ? !window.SERVER_FLAGS.authDisabled : undefined,
@@ -43,15 +51,38 @@ export const baseCRDs = {
 
 const CRDs = { ...baseCRDs };
 
+const addToCRDs = (ref: string, flag: string) => {
+  if (!CRDs[ref]) {
+    CRDs[ref] = flag as FLAGS;
+  }
+};
+
 pluginStore
   .getAllExtensions()
   .filter(isModelFeatureFlag)
   .forEach((ff) => {
-    const modelRef = referenceForModel(ff.properties.model);
-    if (!CRDs[modelRef]) {
-      CRDs[modelRef] = ff.properties.flag as FLAGS;
-    }
+    addToCRDs(referenceForModel(ff.properties.model), ff.properties.flag);
   });
+
+subscribeToExtensions<DynamicModelFeatureFlag>(
+  extensionDiffListener((added, removed) => {
+    const getModelRef = (e: DynamicModelFeatureFlag) => {
+      const model = e.properties.model;
+      return referenceForGroupVersionKind(model.group)(model.version)(model.kind);
+    };
+
+    added.forEach((e) => {
+      addToCRDs(getModelRef(e), e.properties.flag);
+    });
+
+    removed.forEach((e) => {
+      delete CRDs[getModelRef(e)];
+    });
+
+    // TODO(vojtech): change of 'CRDs' should trigger relevant detection logic
+  }),
+  isDynamicModelFeatureFlag,
+);
 
 export type FeatureState = ImmutableMap<string, boolean>;
 

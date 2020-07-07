@@ -19,7 +19,7 @@ const invokeListeners = () => {
     const extensionsInUse = matchedExtensions.filter((e) => isExtensionInUse(e, allFlags));
 
     // Invoke listener only if the extension list has changed
-    if (!_.isEqual(extensionsInUse, sub.listenerLastArgs || [])) {
+    if (!_.isEqual(extensionsInUse, sub.listenerLastArgs)) {
       sub.listenerLastArgs = extensionsInUse;
       sub.listener(extensionsInUse);
     }
@@ -70,7 +70,25 @@ export const subscribeToExtensions = <E extends Extension>(
   };
 };
 
-type ExtensionListener<E extends Extension> = (extensionsInUse: E[]) => void;
+/**
+ * `ExtensionListener` adapter that computes the difference between the calls.
+ */
+export const extensionDiffListener = <E extends Extension>(
+  listener: (added: E[], removed: E[]) => void,
+): ExtensionListener<E> => {
+  let prevExtensions: E[] = [];
+
+  return (nextExtensions: E[]) => {
+    listener(
+      _.difference(nextExtensions, prevExtensions),
+      _.difference(prevExtensions, nextExtensions),
+    );
+
+    prevExtensions = nextExtensions;
+  };
+};
+
+type ExtensionListener<E extends Extension> = (extensions: E[]) => void;
 
 type ExtensionSubscription<E extends Extension> = {
   listener: ExtensionListener<E>;

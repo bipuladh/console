@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { ConsolePluginManifestJSON } from '../../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/schema/plugin-manifest';
-import { Extension, ExtensionWithMetadata, ActivePlugin } from './typings';
+import { Extension, ActivePlugin } from './typings';
 import { ExtensionRegistry } from './registry';
 
 export const sanitizeExtension = <T extends Extension>(e: T): T => {
@@ -8,10 +8,6 @@ export const sanitizeExtension = <T extends Extension>(e: T): T => {
   e.flags.required = _.uniq(e.flags.required || []);
   e.flags.disallowed = _.uniq(e.flags.disallowed || []);
   return e;
-};
-
-export const augmentExtension = (e: Extension, p: ActivePlugin): ExtensionWithMetadata => {
-  return Object.assign(e, { plugin: p.name });
 };
 
 export const isExtensionInUse = (e: Extension, flags: FlagsObject): boolean =>
@@ -31,7 +27,7 @@ export const getGatingFlagNames = (extensions: Extension[]): string[] =>
  */
 export class PluginStore {
   // Extensions contributed by static plugins
-  private readonly staticExtensions: ExtensionWithMetadata[];
+  private readonly staticExtensions: Extension[];
 
   // Extensions contributed by dynamic plugins
   private dynamicExtensions: Extension[] = [];
@@ -45,9 +41,7 @@ export class PluginStore {
 
   public constructor(plugins: ActivePlugin[]) {
     this.staticExtensions = _.flatMap(
-      plugins.map((p) =>
-        p.extensions.map((e) => Object.freeze(augmentExtension(sanitizeExtension({ ...e }), p))),
-      ),
+      plugins.map((p) => p.extensions.map((e) => Object.freeze(sanitizeExtension({ ...e })))),
     );
     this.registry = new ExtensionRegistry(plugins);
     this.updateDynamicExtensions = _.debounce(this.updateDynamicExtensions, 1000);

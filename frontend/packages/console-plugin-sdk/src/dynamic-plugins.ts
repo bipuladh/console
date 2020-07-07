@@ -1,7 +1,7 @@
 import { coFetch } from '@console/internal/co-fetch';
 import { overrideSharedModules } from '../../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/shared-modules';
 import { ConsolePluginManifestJSON } from '../../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/schema/plugin-manifest';
-import { resolveEncodedCodeRefs } from '../../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/coderef-resolver';
+import { resolveEncodedCodeRefs } from '../../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/coderefs/coderef-resolver';
 import { RemoteEntryModule } from '../../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/types';
 import { PluginStore } from './store';
 
@@ -20,7 +20,7 @@ export const fetchPluginManifest = async (baseURL: string) => {
   const url = new URL('plugin-manifest.json', baseURL).toString();
   const response = await coFetch(url, { method: 'GET' });
   return response.json() as ConsolePluginManifestJSON;
-  // TODO: validate the manifest
+  // TODO(vojtech): validate the manifest
 };
 
 export const loadDynamicPlugin = (baseURL: string, manifest: ConsolePluginManifestJSON) => {
@@ -43,32 +43,30 @@ export const loadDynamicPlugin = (baseURL: string, manifest: ConsolePluginManife
 };
 
 export const registerPluginEntryCallback = (pluginStore: PluginStore) => {
-  if (typeof window.loadPluginEntry !== 'function') {
-    window.loadPluginEntry = (pluginID: string, entryModule: RemoteEntryModule) => {
-      if (!pluginMap.has(pluginID)) {
-        console.error(`Received callback for unknown plugin ${pluginID}`);
-        return;
-      }
+  window.loadPluginEntry = (pluginID: string, entryModule: RemoteEntryModule) => {
+    if (!pluginMap.has(pluginID)) {
+      console.error(`Received callback for unknown plugin ${pluginID}`);
+      return;
+    }
 
-      const pluginData = pluginMap.get(pluginID);
+    const pluginData = pluginMap.get(pluginID);
 
-      if (pluginData.entryCallbackFired) {
-        console.error(`Received callback for already loaded plugin ${pluginID}`);
-        return;
-      }
+    if (pluginData.entryCallbackFired) {
+      console.error(`Received callback for already loaded plugin ${pluginID}`);
+      return;
+    }
 
-      pluginData.entryCallbackFired = true;
-      overrideSharedModules(entryModule);
+    pluginData.entryCallbackFired = true;
+    overrideSharedModules(entryModule);
 
-      const resolvedExtensions = resolveEncodedCodeRefs(
-        pluginData.manifest.extensions,
-        entryModule,
-        pluginID,
-        () => pluginStore.setDynamicPluginEnabled(pluginID, false),
-      );
+    const resolvedExtensions = resolveEncodedCodeRefs(
+      pluginData.manifest.extensions,
+      entryModule,
+      pluginID,
+      () => pluginStore.setDynamicPluginEnabled(pluginID, false),
+    );
 
-      pluginStore.addDynamicPlugin(pluginID, pluginData.manifest, resolvedExtensions);
-      console.info(`Loaded plugin ${pluginID} (${resolvedExtensions.length} extensions)`);
-    };
-  }
+    pluginStore.addDynamicPlugin(pluginID, pluginData.manifest, resolvedExtensions);
+    console.info(`Loaded plugin ${pluginID} (${resolvedExtensions.length} extensions)`);
+  };
 };

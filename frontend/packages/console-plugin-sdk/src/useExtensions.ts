@@ -42,6 +42,9 @@ import { Extension, ExtensionTypeGuard } from './typings';
  * ```
  *
  * @param typeGuards Type guard(s) used to narrow the extension instances.
+ *
+ * @returns List of extension instances which are currently in use, narrowed by the
+ * given type guard(s).
  */
 export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeGuard<E>[]): E[] => {
   if (typeGuards.length === 0) {
@@ -57,7 +60,7 @@ export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeG
       allExtensionsRef.current = pluginStore.getAllExtensions();
       forceRender();
     });
-  }, []);
+  }, [forceRender]);
 
   // Narrow extensions according to type guards
   const matchedExtensions = React.useMemo(
@@ -98,4 +101,27 @@ export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeG
   );
 
   return extensionsInUse;
+};
+
+/**
+ * `useExtensions` result adapter that computes the difference between the calls.
+ *
+ * @param nextExtensions Result of `useExtensions` hook.
+ *
+ * @returns `[added: E[], removed: E[]]` tuple.
+ */
+export const useExtensionDiff = <E extends Extension>(nextExtensions: E[]): [E[], E[]] => {
+  const prevExtensionsRef = React.useRef([] as E[]);
+
+  const added = React.useMemo(() => _.difference(nextExtensions, prevExtensionsRef.current), [
+    nextExtensions,
+  ]);
+
+  const removed = React.useMemo(() => _.difference(prevExtensionsRef.current, nextExtensions), [
+    nextExtensions,
+  ]);
+
+  prevExtensionsRef.current = nextExtensions;
+
+  return React.useMemo(() => [added, removed], [added, removed]);
 };

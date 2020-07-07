@@ -1,13 +1,8 @@
 import * as _ from 'lodash';
 import * as Combinatorics from 'js-combinatorics';
 import { PodModel } from '@console/internal/models';
-import { Extension, ActivePlugin, ModelDefinition } from '../typings';
-import {
-  sanitizeExtension,
-  augmentExtension,
-  isExtensionInUse,
-  getGatingFlagNames,
-} from '../store';
+import { Extension, ModelDefinition } from '../typings';
+import { sanitizeExtension, isExtensionInUse, getGatingFlagNames } from '../store';
 
 describe('sanitizeExtension', () => {
   it('sanitizes the flags object for both gated and always-on extensions', () => {
@@ -96,29 +91,6 @@ describe('sanitizeExtension', () => {
     const testExtension: Extension = { type: 'Foo/Bar', properties: {} };
 
     expect(sanitizeExtension(testExtension)).toBe(testExtension);
-  });
-});
-
-describe('augmentExtension', () => {
-  const testPlugin: ActivePlugin = Object.freeze({
-    name: 'Test',
-    extensions: [],
-  });
-
-  it('adds the plugin property', () => {
-    const testExtension: Extension = { type: 'Foo/Bar', properties: {} };
-
-    expect(augmentExtension(testExtension, testPlugin)).toEqual({
-      type: 'Foo/Bar',
-      properties: {},
-      plugin: testPlugin.name,
-    });
-  });
-
-  it('returns the same extension instance', () => {
-    const testExtension: Extension = { type: 'Foo/Bar', properties: {} };
-
-    expect(augmentExtension(testExtension, testPlugin)).toBe(testExtension);
   });
 });
 

@@ -41,6 +41,8 @@ import { useExtensions } from './useExtensions';
  *
  * @param typeGuardMapper Object that maps prop names to extension type guards.
  * It's basically an object-based analogy to Redux `mapStateToProps` function.
+ *
+ * @returns `withExtensions` higher-order component creator function.
  */
 export const withExtensions = <
   TExtensionProps extends ExtensionProps<E>,

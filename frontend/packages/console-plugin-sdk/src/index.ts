@@ -5,3 +5,6 @@ export * from './store';
 // React integrations
 export * from './useExtensions';
 export * from './withExtensions';
+
+// Non-React integrations
+export * from './subscribeToExtensions';

@@ -93,10 +93,3 @@ export type ActivePlugin = {
   name: string;
   extensions: Extension[];
 };
-
-/**
- * An extension enhanced with additional metadata at runtime.
- */
-export type ExtensionWithMetadata = Extension & {
-  plugin: string;
-};

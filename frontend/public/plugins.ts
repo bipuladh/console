@@ -1,7 +1,11 @@
 /* eslint-disable no-undef */
 
 import { ActivePlugin, PluginStore } from '@console/plugin-sdk';
-import { registerPluginEntryCallback } from '@console/plugin-sdk/src/dynamic-plugins';
+import {
+  fetchPluginManifest,
+  loadDynamicPlugin,
+  registerPluginEntryCallback,
+} from '@console/plugin-sdk/src/dynamic-plugins';
 
 // TODO(vojtech): legacy, remove along with `registry` export
 export * from '@console/plugin-sdk';
@@ -26,4 +30,10 @@ registerPluginEntryCallback(pluginStore);
 if (process.env.NODE_ENV !== 'production') {
   // Expose Console plugin store for debugging
   window.pluginStore = pluginStore;
+
+  // Expose function to load plugins directly from URLs
+  window.loadPluginFromURL = async (baseURL: string) => {
+    const manifest = await fetchPluginManifest(baseURL);
+    loadDynamicPlugin(baseURL, manifest);
+  };
 }

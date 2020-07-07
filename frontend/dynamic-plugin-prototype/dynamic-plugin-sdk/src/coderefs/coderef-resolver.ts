@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Extension } from '@console/plugin-sdk/src/typings/base';
-import { SupportedExtension } from './schema/console-extensions';
-import { RemoteEntryModule, EncodedCodeRef, CodeRef } from './types';
+import { SupportedExtension } from '../schema/console-extensions';
+import { RemoteEntryModule, EncodedCodeRef, CodeRef } from '../types';
 
 const isEncodedCodeRef = (obj: object): obj is EncodedCodeRef =>
   _.isPlainObject(obj) &&
@@ -22,7 +22,11 @@ export const parseEncodedCodeRefValue = (value: string): [string, string] | [] =
 };
 
 /**
- * Returns the object referenced by the `EncodedCodeRef` or `null` in case of any errors.
+ * Returns the object referenced by the `EncodedCodeRef`.
+ *
+ * If an error occurs, calls `errorCallback` and returns `null`.
+ *
+ * _Does not throw errors by design._
  */
 const loadReferencedObject = async <TExport = any>(
   ref: EncodedCodeRef,

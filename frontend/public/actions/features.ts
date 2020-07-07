@@ -2,15 +2,26 @@ import { Dispatch } from 'react-redux';
 import * as _ from 'lodash-es';
 import { ActionType as Action, action } from 'typesafe-actions';
 import { FLAGS } from '@console/shared/src/constants/common';
+import {
+  isCustomFeatureFlag,
+  subscribeToExtensions,
+  extensionDiffListener,
+} from '@console/plugin-sdk';
+import store from '../redux';
 import { GroupModel, UserModel } from '../models';
 import { ClusterVersionKind } from '../module/k8s';
 import { receivedResources } from './k8s';
 import { pluginStore } from '../plugins';
 import { setClusterID, setCreateProjectMessage, setUser, setConsoleLinks } from './common';
-import { isCustomFeatureFlag } from '@console/plugin-sdk';
 import client, { fetchURL } from '../graphql/client';
 import { SSARQuery } from './features.gql';
 import { SSARQueryType, SSARQueryVariables } from '../../@types/gql/schema';
+import {
+  FeatureFlag_Resolved as DynamicFeatureFlag,
+  isFeatureFlag as isDynamicFeatureFlag,
+  SetFeatureFlag,
+} from '../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/extensions/feature-flags';
+import { executeReferencedFunction } from '../../dynamic-plugin-prototype/dynamic-plugin-sdk/src/coderefs/coderef-utils';
 
 export enum ActionType {
   SetFlag = 'setFlag',
@@ -251,3 +262,21 @@ export const detectFeatures = () => (dispatch: Dispatch) =>
       .filter(isCustomFeatureFlag)
       .map((ff) => ff.properties.detect),
   ].forEach((detect) => detect(dispatch));
+
+const featureFlagController: SetFeatureFlag = (flag, enabled) => {
+  store.dispatch(setFlag(flag, enabled));
+};
+
+const processedExtensions: DynamicFeatureFlag[] = [];
+
+subscribeToExtensions<DynamicFeatureFlag>(
+  extensionDiffListener((added) => {
+    added.forEach((e) => {
+      if (!processedExtensions.includes(e)) {
+        processedExtensions.push(e);
+        executeReferencedFunction(e.properties.handler, featureFlagController);
+      }
+    });
+  }),
+  isDynamicFeatureFlag,
+);
