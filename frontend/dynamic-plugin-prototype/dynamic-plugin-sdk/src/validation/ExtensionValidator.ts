@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import { ValidationResult } from './ValidationResult';
 import { ConsolePluginMetadata } from '../schema/plugin-package';
 import { SupportedExtension } from '../schema/console-extensions';
-import { filterCodeRefProperties, parseEncodedCodeRefValue } from '../coderef-resolver';
+import { filterCodeRefProperties, parseEncodedCodeRefValue } from '../coderefs/coderef-resolver';
 
 type ExtensionCodeRefData = {
   index: number;

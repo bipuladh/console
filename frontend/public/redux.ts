@@ -1,7 +1,8 @@
 import { applyMiddleware, combineReducers, createStore, compose, ReducersMapObject } from 'redux';
 import * as _ from 'lodash-es';
 
-import { isReduxReducer, isExtensionInUse, getGatingFlagNames } from '@console/plugin-sdk';
+import { isReduxReducer } from '@console/plugin-sdk/src/typings/reducers';
+import { isExtensionInUse, getGatingFlagNames } from '@console/plugin-sdk/src/store';
 import { featureReducer, featureReducerName, FeatureState } from './reducers/features';
 import k8sReducers, { K8sState } from './reducers/k8s';
 import UIReducers, { UIState } from './reducers/ui';

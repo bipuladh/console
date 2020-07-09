@@ -1,12 +1,13 @@
 import { Dispatch } from 'react-redux';
 import * as _ from 'lodash-es';
 import { ActionType as Action, action } from 'typesafe-actions';
+
 import { FLAGS } from '@console/shared/src/constants/common';
+import { isCustomFeatureFlag } from '@console/plugin-sdk/src/typings';
 import {
-  isCustomFeatureFlag,
   subscribeToExtensions,
   extensionDiffListener,
-} from '@console/plugin-sdk';
+} from '@console/plugin-sdk/src/subscribeToExtensions';
 import store from '../redux';
 import { GroupModel, UserModel } from '../models';
 import { ClusterVersionKind } from '../module/k8s';

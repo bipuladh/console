@@ -2,11 +2,12 @@ import { connect } from 'react-redux';
 import { Map as ImmutableMap } from 'immutable';
 import * as _ from 'lodash-es';
 
+import { FLAGS } from '@console/shared/src/constants';
+import { isModelFeatureFlag } from '@console/plugin-sdk/src/typings';
 import {
-  isModelFeatureFlag,
   subscribeToExtensions,
   extensionDiffListener,
-} from '@console/plugin-sdk';
+} from '@console/plugin-sdk/src/subscribeToExtensions';
 import {
   ChargebackReportModel,
   ClusterServiceClassModel,
@@ -24,7 +25,6 @@ import { referenceForModel, referenceForGroupVersionKind } from '../module/k8s';
 import { RootState } from '../redux';
 import { ActionType as K8sActionType } from '../actions/k8s';
 import { FeatureAction, ActionType } from '../actions/features';
-import { FLAGS } from '@console/shared/src/constants';
 import { pluginStore } from '../plugins';
 import {
   ModelFeatureFlag as DynamicModelFeatureFlag,

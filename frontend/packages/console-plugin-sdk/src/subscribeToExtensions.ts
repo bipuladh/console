@@ -1,36 +1,47 @@
+import { Store } from 'redux';
 import * as _ from 'lodash';
-import { pluginStore } from '@console/internal/plugins';
-import reduxStore from '@console/internal/redux';
-import { getFlagsObject } from '@console/internal/reducers/features';
-import { isExtensionInUse } from './store';
+import { RootState } from '@console/internal/redux';
+import { isExtensionInUse, PluginStore } from './store';
 import { Extension, ExtensionTypeGuard } from './typings';
+
+let subscriptionServiceInitialized = false;
 
 const subscriptions: ExtensionSubscription<Extension>[] = [];
 
-const invokeListeners = () => {
-  const allExtensions = pluginStore.getAllExtensions();
-  const allFlags = getFlagsObject(reduxStore.getState());
+export const initSubscriptionService = (pluginStore: PluginStore, reduxStore: Store<RootState>) => {
+  if (subscriptionServiceInitialized) {
+    throw new Error('Subscription service is already initialized');
+  }
 
-  subscriptions.forEach((sub) => {
-    // Narrow extensions according to type guards
-    const matchedExtensions = _.flatMap(sub.typeGuards.map((tg) => allExtensions.filter(tg)));
+  subscriptionServiceInitialized = true;
 
-    // Gate matched extensions by relevant feature flags
-    const extensionsInUse = matchedExtensions.filter((e) => isExtensionInUse(e, allFlags));
+  const invokeListeners = () => {
+    debugger; // TODO TEST
 
-    // Invoke listener only if the extension list has changed
-    if (!_.isEqual(extensionsInUse, sub.listenerLastArgs)) {
-      sub.listenerLastArgs = extensionsInUse;
-      sub.listener(extensionsInUse);
-    }
-  });
+    const allExtensions = pluginStore.getAllExtensions();
+    const allFlags = reduxStore.getState().FLAGS.toObject();
+
+    subscriptions.forEach((sub) => {
+      // Narrow extensions according to type guards
+      const matchedExtensions = _.flatMap(sub.typeGuards.map((tg) => allExtensions.filter(tg)));
+
+      // Gate matched extensions by relevant feature flags
+      const extensionsInUse = matchedExtensions.filter((e) => isExtensionInUse(e, allFlags));
+
+      // Invoke listener only if the extension list has changed
+      if (!_.isEqual(extensionsInUse, sub.listenerLastArgs)) {
+        sub.listenerLastArgs = extensionsInUse;
+        sub.listener(extensionsInUse);
+      }
+    });
+  };
+
+  pluginStore.subscribe(invokeListeners);
+  reduxStore.subscribe(invokeListeners);
+
+  // Trigger initial listener invocation in order to support static plugins
+  invokeListeners();
 };
-
-pluginStore.subscribe(invokeListeners);
-reduxStore.subscribe(invokeListeners);
-
-// Trigger initial listener invocation in order to support static plugins
-setTimeout(invokeListeners);
 
 /**
  * Subscription based mechanism for consuming Console extensions.

@@ -17,6 +17,7 @@ import { history, AsyncComponent } from './utils';
 import * as UIActions from '../actions/ui';
 import { fetchSwagger, getCachedResources } from '../module/k8s';
 import { receivedResources, watchAPIServices } from '../actions/k8s';
+import { initConsolePlugins } from '../plugins';
 // cloud shell imports must come later than features
 import CloudShell from '@console/app/src/components/cloud-shell/CloudShell';
 import CloudShellTab from '@console/app/src/components/cloud-shell/CloudShellTab';
@@ -218,6 +219,8 @@ if ('serviceWorker' in navigator) {
       .catch((e) => console.warn('Error unregistering service workers', e));
   }
 }
+
+initConsolePlugins(store);
 
 render(
   <Provider store={store}>
