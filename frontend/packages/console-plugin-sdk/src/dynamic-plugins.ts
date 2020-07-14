@@ -69,7 +69,13 @@ export const registerPluginEntryCallback = (pluginStore: PluginStore) => {
     }
 
     pluginData.entryCallbackFired = true;
-    overrideSharedModules(entryModule);
+
+    try {
+      overrideSharedModules(entryModule);
+    } catch (error) {
+      console.error(`Failed to override shared modules for plugin ${pluginID}`, error);
+      return;
+    }
 
     const resolvedExtensions = resolveEncodedCodeRefs(
       pluginData.manifest.extensions,

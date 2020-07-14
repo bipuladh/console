@@ -1,13 +1,7 @@
 import * as React from 'react';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-// @ts-ignore: FIXME missing exports due to out-of-sync @types/react-redux version
-import { useSelector } from 'react-redux';
-import { createSelectorCreator, defaultMemoize } from 'reselect';
 import * as _ from 'lodash';
-import { RootState } from '@console/internal/redux';
-import { stateToFlagsObject, FlagsObject, FeatureState } from '@console/internal/reducers/features';
-import { pluginStore } from '@console/internal/plugins';
-import { getGatingFlagNames, isExtensionInUse } from './store';
+import { useForceRender } from '@console/shared/src/utils/useForceRender';
+import { subscribeToExtensions } from './subscribeToExtensions';
 import { Extension, ExtensionTypeGuard } from './typings';
 
 /**
@@ -51,56 +45,17 @@ export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeG
     throw new Error('You must pass at least one type guard to useExtensions');
   }
 
-  // Subscribe to extension list changes
-  const forceRender = React.useReducer((s: boolean) => !s, false)[1] as () => void;
-  const allExtensionsRef = React.useRef([] as Extension[]);
+  const extensionsRef = React.useRef([] as E[]);
+  const forceRender = useForceRender();
 
   React.useEffect(() => {
-    return pluginStore.subscribe(() => {
-      allExtensionsRef.current = pluginStore.getAllExtensions();
+    return subscribeToExtensions<E>((extensions) => {
+      extensionsRef.current = extensions;
       forceRender();
-    });
-  }, [forceRender]);
+    }, ...typeGuards);
+  }, [forceRender, typeGuards]);
 
-  // Narrow extensions according to type guards
-  const matchedExtensions = React.useMemo(
-    () => _.flatMap(typeGuards.map((tg) => allExtensionsRef.current.filter(tg))),
-    [typeGuards],
-  );
-
-  // Compute flags relevant for gating matched extensions
-  const gatingFlagNames = React.useMemo(() => getGatingFlagNames(matchedExtensions), [
-    matchedExtensions,
-  ]);
-
-  const gatingFlagSelectorCreator = React.useMemo(
-    () =>
-      createSelectorCreator(
-        defaultMemoize as any,
-        (prevFeatureState: FeatureState, nextFeatureState: FeatureState) =>
-          gatingFlagNames.every((f) => prevFeatureState.get(f) === nextFeatureState.get(f)),
-      ),
-    [gatingFlagNames],
-  );
-
-  const gatingFlagSelector = React.useMemo(
-    () =>
-      gatingFlagSelectorCreator(
-        (state: RootState) => state.FLAGS,
-        (featureState) => stateToFlagsObject(featureState, gatingFlagNames),
-      ),
-    [gatingFlagSelectorCreator, gatingFlagNames],
-  );
-
-  const gatingFlags = useSelector<RootState, FlagsObject>(gatingFlagSelector);
-
-  // Gate matched extensions by relevant feature flags
-  const extensionsInUse = React.useMemo(
-    () => matchedExtensions.filter((e) => isExtensionInUse(e, gatingFlags)),
-    [matchedExtensions, gatingFlags],
-  );
-
-  return extensionsInUse;
+  return extensionsRef.current;
 };
 
 /**

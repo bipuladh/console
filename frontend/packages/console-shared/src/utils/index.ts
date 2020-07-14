@@ -7,6 +7,7 @@ export * from './validation';
 export * from './table-utils';
 export * from './storage-utils';
 export * from './useCombineRefs';
+export * from './useForceRender';
 export * from './icon-utils';
 export * from './namespace';
 export * from './label-filter';

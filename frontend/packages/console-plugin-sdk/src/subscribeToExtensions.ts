@@ -15,18 +15,26 @@ export const initSubscriptionService = (pluginStore: PluginStore, reduxStore: St
 
   subscriptionServiceInitialized = true;
 
-  const invokeListeners = () => {
-    debugger; // TODO TEST
+  let lastExtensions: Extension[] = [];
+  let lastFlags = {};
 
-    const allExtensions = pluginStore.getAllExtensions();
-    const allFlags = reduxStore.getState().FLAGS.toObject();
+  const invokeListeners = () => {
+    const nextExtensions = pluginStore.getAllExtensions();
+    const nextFlags = reduxStore.getState().FLAGS.toObject();
+
+    if (_.isEqual(nextExtensions, lastExtensions) && _.isEqual(nextFlags, lastFlags)) {
+      return;
+    }
+
+    lastExtensions = nextExtensions;
+    lastFlags = nextFlags;
 
     subscriptions.forEach((sub) => {
       // Narrow extensions according to type guards
-      const matchedExtensions = _.flatMap(sub.typeGuards.map((tg) => allExtensions.filter(tg)));
+      const matchedExtensions = _.flatMap(sub.typeGuards.map((tg) => nextExtensions.filter(tg)));
 
       // Gate matched extensions by relevant feature flags
-      const extensionsInUse = matchedExtensions.filter((e) => isExtensionInUse(e, allFlags));
+      const extensionsInUse = matchedExtensions.filter((e) => isExtensionInUse(e, nextFlags));
 
       // Invoke listener only if the extension list has changed
       if (!_.isEqual(extensionsInUse, sub.listenerLastArgs)) {
