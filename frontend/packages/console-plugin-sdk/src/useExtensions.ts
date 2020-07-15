@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as _ from 'lodash';
-import { useForceRender } from '@console/shared/src/utils/useForceRender';
 import { subscribeToExtensions } from './subscribeToExtensions';
 import { Extension, ExtensionTypeGuard } from './typings';
 
@@ -45,38 +44,13 @@ export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeG
     throw new Error('You must pass at least one type guard to useExtensions');
   }
 
-  const extensionsRef = React.useRef([] as E[]);
-  const forceRender = useForceRender();
+  const [extensionsInUse, setExtensionsInUse] = React.useState<E[]>([]);
 
   React.useEffect(() => {
     return subscribeToExtensions<E>((extensions) => {
-      extensionsRef.current = extensions;
-      forceRender();
+      setExtensionsInUse(extensions);
     }, ...typeGuards);
-  }, [forceRender, typeGuards]);
+  }, [setExtensionsInUse, typeGuards]);
 
-  return extensionsRef.current;
-};
-
-/**
- * `useExtensions` result adapter that computes the difference between the calls.
- *
- * @param nextExtensions Result of `useExtensions` hook.
- *
- * @returns `[added: E[], removed: E[]]` tuple.
- */
-export const useExtensionDiff = <E extends Extension>(nextExtensions: E[]): [E[], E[]] => {
-  const prevExtensionsRef = React.useRef([] as E[]);
-
-  const added = React.useMemo(() => _.difference(nextExtensions, prevExtensionsRef.current), [
-    nextExtensions,
-  ]);
-
-  const removed = React.useMemo(() => _.difference(prevExtensionsRef.current, nextExtensions), [
-    nextExtensions,
-  ]);
-
-  prevExtensionsRef.current = nextExtensions;
-
-  return React.useMemo(() => [added, removed], [added, removed]);
+  return extensionsInUse;
 };
