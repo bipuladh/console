@@ -26,8 +26,6 @@ export const fetchPluginManifest = async (baseURL: string) => {
 };
 
 export const loadDynamicPlugin = (baseURL: string, manifest: ConsolePluginManifestJSON) => {
-  debugger; // TODO TEST
-
   const existingPluginData = Array.from(pluginMap.values()).find(
     (p) => p.manifest.name === manifest.name,
   );
@@ -54,8 +52,6 @@ export const registerPluginEntryCallback = (pluginStore: PluginStore) => {
   pluginEntryCallbackRegistered = true;
 
   window.loadPluginEntry = (pluginID: string, entryModule: RemoteEntryModule) => {
-    debugger; // TODO TEST
-
     if (!pluginMap.has(pluginID)) {
       console.error(`Received callback for unknown plugin ${pluginID}`);
       return;

@@ -16,6 +16,8 @@ import { Extension, ExtensionTypeGuard } from './typings';
  * - all feature flags referenced by its `flags` object are resolved to the right
  *   values
  *
+ * This hook treats its arguments as fixed and referentially stable across renders.
+ *
  * Example usage:
  *
  * ```ts
@@ -44,13 +46,37 @@ export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeG
     throw new Error('You must pass at least one type guard to useExtensions');
   }
 
-  const [extensionsInUse, setExtensionsInUse] = React.useState<E[]>([]);
+  const isFirstRenderRef = React.useRef(true);
+  const unsubscribeRef = React.useRef<() => void>(null);
+
+  const extensionsInUseRef = React.useRef<E[]>([]);
+  const forceRender = React.useReducer((s: boolean) => !s, false)[1] as () => void;
+
+  const trySubscribe = React.useCallback(() => {
+    if (unsubscribeRef.current === null) {
+      unsubscribeRef.current = subscribeToExtensions<E>((extensions) => {
+        extensionsInUseRef.current = extensions;
+        forceRender();
+      }, ...typeGuards);
+    }
+  }, []);
+
+  const tryUnsubscribe = React.useCallback(() => {
+    if (unsubscribeRef.current !== null) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
+  }, []);
 
   React.useEffect(() => {
-    return subscribeToExtensions<E>((extensions) => {
-      setExtensionsInUse(extensions);
-    }, ...typeGuards);
-  }, [setExtensionsInUse, typeGuards]);
+    trySubscribe();
+    return () => tryUnsubscribe();
+  }, [trySubscribe, tryUnsubscribe]);
 
-  return extensionsInUse;
+  if (isFirstRenderRef.current) {
+    isFirstRenderRef.current = false;
+    trySubscribe();
+  }
+
+  return extensionsInUseRef.current;
 };

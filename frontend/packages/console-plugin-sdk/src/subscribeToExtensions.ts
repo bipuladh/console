@@ -6,6 +6,8 @@ import { Extension, ExtensionTypeGuard } from './typings';
 
 let subscriptionServiceInitialized = false;
 
+let onSubscriptionAdded: (sub: ExtensionSubscription<Extension>) => void;
+
 const subscriptions: ExtensionSubscription<Extension>[] = [];
 
 export const initSubscriptionService = (pluginStore: PluginStore, reduxStore: Store<RootState>) => {
@@ -15,12 +17,35 @@ export const initSubscriptionService = (pluginStore: PluginStore, reduxStore: St
 
   subscriptionServiceInitialized = true;
 
-  let lastExtensions: Extension[] = [];
-  let lastFlags = {};
+  const getAllExtensions = () => pluginStore.getAllExtensions();
+  const getAllFlags = () => reduxStore.getState().FLAGS.toObject();
 
-  const invokeListeners = () => {
-    const nextExtensions = pluginStore.getAllExtensions();
-    const nextFlags = reduxStore.getState().FLAGS.toObject();
+  const invokeListener = (
+    sub: ExtensionSubscription<Extension>,
+    currentExtensions = getAllExtensions(),
+    currentFlags = getAllFlags(),
+  ) => {
+    // Narrow extensions according to type guards
+    const matchedExtensions = _.flatMap(sub.typeGuards.map((tg) => currentExtensions.filter(tg)));
+
+    // Gate matched extensions by relevant feature flags
+    const extensionsInUse = matchedExtensions.filter((e) => isExtensionInUse(e, currentFlags));
+
+    // Invoke listener only if the extension list has changed
+    if (!_.isEqual(extensionsInUse, sub.listenerLastArgs)) {
+      sub.listenerLastArgs = extensionsInUse;
+      sub.listener(extensionsInUse);
+    }
+  };
+
+  onSubscriptionAdded = invokeListener;
+
+  let lastExtensions: ReturnType<typeof getAllExtensions> = [];
+  let lastFlags: ReturnType<typeof getAllFlags> = {};
+
+  const invokeAllListeners = () => {
+    const nextExtensions = getAllExtensions();
+    const nextFlags = getAllFlags();
 
     if (_.isEqual(nextExtensions, lastExtensions) && _.isEqual(nextFlags, lastFlags)) {
       return;
@@ -30,29 +55,19 @@ export const initSubscriptionService = (pluginStore: PluginStore, reduxStore: St
     lastFlags = nextFlags;
 
     subscriptions.forEach((sub) => {
-      // Narrow extensions according to type guards
-      const matchedExtensions = _.flatMap(sub.typeGuards.map((tg) => nextExtensions.filter(tg)));
-
-      // Gate matched extensions by relevant feature flags
-      const extensionsInUse = matchedExtensions.filter((e) => isExtensionInUse(e, nextFlags));
-
-      // Invoke listener only if the extension list has changed
-      if (!_.isEqual(extensionsInUse, sub.listenerLastArgs)) {
-        sub.listenerLastArgs = extensionsInUse;
-        sub.listener(extensionsInUse);
-      }
+      invokeListener(sub, nextExtensions, nextFlags);
     });
   };
 
-  pluginStore.subscribe(invokeListeners);
-  reduxStore.subscribe(invokeListeners);
-
-  // Trigger initial listener invocation in order to support static plugins
-  invokeListeners();
+  pluginStore.subscribe(invokeAllListeners);
+  reduxStore.subscribe(invokeAllListeners);
 };
 
 /**
  * Subscription based mechanism for consuming Console extensions.
+ *
+ * Provided listener will be invoked immediately to allow processing existing extensions.
+ * It will also be invoked whenever the computed list of extension instances changes.
  *
  * _Tip: need to access extensions in a React component?_
  * - **Yes**
@@ -80,6 +95,12 @@ export const subscribeToExtensions = <E extends Extension>(
 
   let isSubscribed = true;
   subscriptions.push(sub);
+
+  if (subscriptionServiceInitialized) {
+    onSubscriptionAdded(sub);
+  } else {
+    setTimeout(() => onSubscriptionAdded(sub));
+  }
 
   return () => {
     if (isSubscribed) {

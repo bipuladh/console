@@ -71,8 +71,6 @@ export const resolveEncodedCodeRefs = (
   errorCallback: () => void,
 ): Extension[] => {
   return extensions.map(_.cloneDeep).map((e) => {
-    debugger; // TODO TEST
-
     const codeRefProperties = filterCodeRefProperties(e.properties);
 
     Object.entries(codeRefProperties).forEach(([propName, ref]) => {

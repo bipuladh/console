@@ -52,8 +52,6 @@ export class PluginStore {
   }
 
   private updateDynamicExtensions() {
-    debugger; // TODO TEST
-
     this.dynamicExtensions = Array.from(this.dynamicPlugins.values()).reduce(
       (acc, plugin) => (plugin.enabled ? [...acc, ...plugin.resolvedExtensions] : acc),
       [] as Extension[],
@@ -81,8 +79,6 @@ export class PluginStore {
     manifest: ConsolePluginManifestJSON,
     resolvedExtensions: Extension[],
   ) {
-    debugger; // TODO TEST
-
     if (!this.dynamicPlugins.has(pluginID)) {
       this.dynamicPlugins.set(pluginID, {
         manifest: Object.freeze(manifest),
@@ -93,8 +89,6 @@ export class PluginStore {
   }
 
   public setDynamicPluginEnabled(pluginID: string, enabled: boolean) {
-    debugger; // TODO TEST
-
     if (this.dynamicPlugins.has(pluginID)) {
       const plugin = this.dynamicPlugins.get(pluginID);
 
