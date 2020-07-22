@@ -20,10 +20,12 @@ export const initSubscriptionService = (pluginStore: PluginStore, reduxStore: St
   const getAllExtensions = () => pluginStore.getAllExtensions();
   const getAllFlags = () => reduxStore.getState().FLAGS.toObject();
 
+  type FeatureFlags = ReturnType<typeof getAllFlags>;
+
   const invokeListener = (
     sub: ExtensionSubscription<Extension>,
-    currentExtensions = getAllExtensions(),
-    currentFlags = getAllFlags(),
+    currentExtensions: Extension[],
+    currentFlags: FeatureFlags,
   ) => {
     // Narrow extensions according to type guards
     const matchedExtensions = _.flatMap(sub.typeGuards.map((tg) => currentExtensions.filter(tg)));
@@ -38,10 +40,12 @@ export const initSubscriptionService = (pluginStore: PluginStore, reduxStore: St
     }
   };
 
-  onSubscriptionAdded = invokeListener;
+  onSubscriptionAdded = (sub) => {
+    invokeListener(sub, getAllExtensions(), getAllFlags());
+  };
 
-  let lastExtensions: ReturnType<typeof getAllExtensions> = [];
-  let lastFlags: ReturnType<typeof getAllFlags> = {};
+  let lastExtensions: Extension[] = [];
+  let lastFlags: FeatureFlags = {};
 
   const invokeAllListeners = () => {
     const nextExtensions = getAllExtensions();
