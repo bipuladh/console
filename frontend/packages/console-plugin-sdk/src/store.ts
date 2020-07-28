@@ -85,6 +85,8 @@ export class PluginStore {
         resolvedExtensions: resolvedExtensions.map((e) => Object.freeze(sanitizeExtension(e))),
         enabled: false,
       });
+    } else {
+      console.warn(`Attempt to re-add plugin ${pluginID}`);
     }
   }
 
@@ -96,12 +98,25 @@ export class PluginStore {
         plugin.enabled = enabled;
         this.updateDynamicExtensions();
       }
+    } else {
+      console.warn(`Attempt to ${enabled ? 'enable' : 'disable'} unknown plugin ${pluginID}`);
+    }
+  }
+
+  public isDynamicPluginEnabled(pluginID: string): boolean {
+    if (this.dynamicPlugins.has(pluginID)) {
+      const plugin = this.dynamicPlugins.get(pluginID);
+      return plugin.enabled;
+    } else {
+      console.warn(`Attempt to get enabled status for unknown plugin ${pluginID}`);
+      return false;
     }
   }
 
   public getDynamicPluginMetadata() {
     return Array.from(this.dynamicPlugins.keys()).reduce((acc, pluginID) => {
-      acc[pluginID] = _.omit(this.dynamicPlugins.get(pluginID).manifest, 'extensions');
+      const plugin = this.dynamicPlugins.get(pluginID);
+      acc[pluginID] = _.omit(plugin.manifest, 'extensions');
       return acc;
     }, {} as { [pluginID: string]: DynamicPluginMetadata });
   }

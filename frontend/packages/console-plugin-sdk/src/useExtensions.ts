@@ -16,8 +16,6 @@ import { Extension, ExtensionTypeGuard } from './typings';
  * - all feature flags referenced by its `flags` object are resolved to the right
  *   values
  *
- * This hook treats its arguments as fixed and referentially stable across renders.
- *
  * Example usage:
  *
  * ```ts
@@ -46,10 +44,9 @@ export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeG
     throw new Error('You must pass at least one type guard to useExtensions');
   }
 
-  const isFirstRenderRef = React.useRef(true);
   const unsubscribeRef = React.useRef<() => void>(null);
-
   const extensionsInUseRef = React.useRef<E[]>([]);
+  const latestTypeGuardsRef = React.useRef<ExtensionTypeGuard<E>[]>(typeGuards);
   const forceRender = React.useReducer((s: boolean) => !s, false)[1] as () => void;
 
   const trySubscribe = React.useCallback(() => {
@@ -68,15 +65,15 @@ export const useExtensions = <E extends Extension>(...typeGuards: ExtensionTypeG
     }
   }, []);
 
-  React.useEffect(() => {
-    trySubscribe();
-    return () => tryUnsubscribe();
-  }, [trySubscribe, tryUnsubscribe]);
-
-  if (isFirstRenderRef.current) {
-    isFirstRenderRef.current = false;
+  if (!_.isEqual(latestTypeGuardsRef.current, typeGuards)) {
+    latestTypeGuardsRef.current = typeGuards;
+    tryUnsubscribe();
     trySubscribe();
   }
+
+  trySubscribe();
+
+  React.useEffect(() => tryUnsubscribe, []);
 
   return extensionsInUseRef.current;
 };
