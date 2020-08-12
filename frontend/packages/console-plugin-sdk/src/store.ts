@@ -57,9 +57,7 @@ export class PluginStore {
       [] as Extension[],
     );
 
-    this.listeners.forEach((listener) => {
-      listener();
-    });
+    this.listeners.forEach((listener) => listener());
   }
 
   public subscribe(listener: () => void): () => void {
@@ -85,6 +83,7 @@ export class PluginStore {
         resolvedExtensions: resolvedExtensions.map((e) => Object.freeze(sanitizeExtension(e))),
         enabled: false,
       });
+      this.listeners.forEach((listener) => listener());
     } else {
       console.warn(`Attempt to re-add plugin ${pluginID}`);
     }
@@ -120,6 +119,10 @@ export class PluginStore {
       return acc;
     }, {} as { [pluginID: string]: DynamicPluginMetadata });
   }
+
+  public getDynamicPlugins() {
+    return this.dynamicPlugins;
+  }
 }
 
 type FlagsObject = { [key: string]: boolean };
@@ -128,7 +131,7 @@ type DynamicPluginManifest = Readonly<ConsolePluginManifestJSON>;
 
 type DynamicPluginMetadata = Omit<DynamicPluginManifest, 'extensions'>;
 
-type DynamicPlugin = {
+export type DynamicPlugin = {
   manifest: DynamicPluginManifest;
   resolvedExtensions: Extension[];
   enabled: boolean;

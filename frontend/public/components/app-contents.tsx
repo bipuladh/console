@@ -673,6 +673,17 @@ const AppContents_: React.FC<AppContentsProps> = ({ activePerspective }) => {
                 import('./error' /* webpackChunkName: "error" */).then((m) => m.ErrorPage)
               }
             />
+
+            <LazyRoute
+              path="/dracarys"
+              exact
+              loader={() =>
+                import(
+                  '@console/app/src/components/plugins/plugin-list' /* webpackChunkName: "dracarys" */
+                ).then((m) => m.default)
+              }
+            />
+
             <Route path="/" exact component={DefaultPage} />
 
             <LazyRoute
