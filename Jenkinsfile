@@ -17,7 +17,7 @@ pipeline {
         stage('Test runner A') {
           steps {
             echo "Running build ${env.BUILD_ID}"
-            sh "yarn run test-ceph-parallel"
+            sh "cd frontend && yarn run test-ceph-parallel"
           }
         }
 
@@ -25,7 +25,7 @@ pipeline {
         stage('Test runner B') {
           steps {
             echo "Running build ${env.BUILD_ID}"
-            sh "yarn run test-ceph-parallel"
+            sh "cd frontend && yarn run test-ceph-parallel"
           }
         }
       }
