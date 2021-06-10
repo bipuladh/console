@@ -7,6 +7,12 @@ pipeline {
   }
 
   stages {
+    stage('build') {
+      steps {
+        echo "Running build ${env.BUILD_ID} on ${env.JENKINS_URL}"
+        sh 'cd frontend && yarn install'
+      }
+    }
     stage('cypress parallel tests') {
       environment {
         CYPRESS_RECORD_KEY = credentials('ceph-tests')
@@ -17,7 +23,7 @@ pipeline {
         stage('Test runner A') {
           steps {
             echo "Running build ${env.BUILD_ID}"
-            sh "cd frontend && yarn run test-ceph-parallel"
+            sh "yarn run test-ceph-parallel"
           }
         }
 
@@ -25,7 +31,7 @@ pipeline {
         stage('Test runner B') {
           steps {
             echo "Running build ${env.BUILD_ID}"
-            sh "cd frontend && yarn run test-ceph-parallel"
+            sh "yarn run test-ceph-parallel"
           }
         }
       }
