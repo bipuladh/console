@@ -2,7 +2,7 @@
 pipeline {
   agent {
     docker {
-      image 'cypress/base:10'
+      image 'node:stretch-slim'
     }
   }
 
@@ -10,9 +10,6 @@ pipeline {
     stage('build') {
       steps {
         echo "Running build ${env.BUILD_ID} on ${env.JENKINS_URL}"
-        sh 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash'
-        sh 'nvm install 14'
-        sh 'nvm use 14'
         sh 'cd frontend && yarn install'
       }
     }
