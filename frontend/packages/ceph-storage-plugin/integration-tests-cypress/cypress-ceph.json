@@ -15,5 +15,5 @@
     "runMode": 1,
     "openMode": 0
   },
-  "baseUrl": "docker0:9000/"
+  "baseUrl": "127.17.0.1:9000/"
 }
