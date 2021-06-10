@@ -11,7 +11,6 @@ pipeline {
       steps {
         echo "Running build ${env.BUILD_ID} on ${env.JENKINS_URL}"
         sh 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash'
-        sh 'source ~/.profile'
         sh 'nvm install 14'
         sh 'nvm use 14'
         sh 'cd frontend && yarn install'
