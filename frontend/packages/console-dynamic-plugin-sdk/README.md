@@ -174,3 +174,42 @@ via `SERVER_FLAGS` object.
   be enabled or disabled separately.
 - Failure to resolve a code reference (unable to load module, missing module export etc.) will disable
   the plugin.
+
+### Component APIs
+
+There are currently two API packages exposed as part of the dynamic plugin SDK. The Stable API package and Internal API packages.
+Stable APIs have been vetted and are unlikely to change in terms of signature.
+Internal APIs have been created to help internal teams branch out of the MonoRepo. These APIs are likely to change or be completely removed.
+
+#### Stable APIs
+
+Stable APIs are exposed under `/api` scope. The following components have been exposed as part of the Stable API Package.
+
+- `useK8sWatchResource`
+- `useK8sWatchResources`
+
+#### Internal APIs
+
+Internal APIs are exposed under `/internalAPI` scope. The following components have been exposed as part of the Internal API package.
+
+- `useDashboardQuery` as `useDashboardPrometheusQuery`
+- `ActvitiyItem`
+- `ActivityBody`
+- `RecentEventsBody`
+- `OngoingActivityBody`
+- `AlertsBody`
+- `HealthItem`
+- `HealthBody`
+- `DashboardCard`
+- `DashboardCardHeader`
+- `DashboardCardTitle`
+- `DashboardGrid`
+- `ResourceInventoryItem`
+- `DetailsItem`
+- `DetailsBody`
+- `PageHeading`
+- `HorizontalNav`
+- `FieldLevelHelp`
+- `ListPage`
+- `useMetricDuration`
+- `Duration`
