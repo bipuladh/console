@@ -4,6 +4,9 @@
 export const exposedAPIs = {
   useDashboardPrometheusQuery: require('@console/shared/src/components/dashboard/utilization-card/prometheus-hook')
     .usePrometheusQuery,
+  useResolvedExtensions: require('@console/dynamic-plugin-sdk/src/api/useResolvedExtensions')
+    .useResolvedExtensions,
+
   AcitivityItem: require('@console/shared/src/components/dashboard/activity-card/ActivityItem')
     .default,
   ActivityBody: require('@console/shared/src/components/dashboard/activity-card/ActivityBody')
