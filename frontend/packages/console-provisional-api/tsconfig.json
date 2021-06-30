@@ -10,6 +10,5 @@
     "noUnusedLocals": true,
     "skipLibCheck": true
   },
-  "exclude": ["./exposedModules.ts", "./script.ts", "**/dist"],
-  "include": ["./index.ts"]
+  "exclude": ["./exposedModules.ts", "./script.ts", "**/dist"]
 }
