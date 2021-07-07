@@ -2,9 +2,9 @@ import {
   K8sResourceCommon,
   FirehoseResult,
   PrometheusResponse,
-  Alert,
   HealthState,
   StatusGroupMapper,
+  PrometheusLabels,
 } from '../../../extensions/console-types';
 import { K8sKind } from '../../common-types';
 
@@ -38,6 +38,53 @@ export type OngoingActivityBodyProps = {
     loader?: Promise<React.ComponentType<Partial<OngoingActvityProps>>>;
     component?: React.ComponentType<OngoingActvityProps>;
   }[];
+};
+
+type PrometheusAlert = {
+  activeAt?: string;
+  annotations: PrometheusLabels;
+  labels: PrometheusLabels & {
+    alertname: string;
+    severity?: string;
+  };
+  state: string;
+  value?: number | string;
+};
+
+type Silence = {
+  comment: string;
+  createdBy: string;
+  endsAt: string;
+  firingAlerts: Alert[];
+  id?: string;
+  matchers: { name: string; value: string; isRegex: boolean }[];
+  name?: string;
+  startsAt: string;
+  status?: { state: string };
+  updatedAt?: string;
+};
+
+type Alert = PrometheusAlert & {
+  rule: Rule;
+  silencedBy?: Silence[];
+};
+
+type PrometheusRule = {
+  alerts: PrometheusAlert[];
+  annotations: PrometheusLabels;
+  duration: number;
+  labels: PrometheusLabels & {
+    severity?: string;
+  };
+  name: string;
+  query: string;
+  state: string;
+  type: string;
+};
+
+type Rule = PrometheusRule & {
+  id: string;
+  silencedBy?: Silence[];
 };
 
 export type AlertItemProps = {
