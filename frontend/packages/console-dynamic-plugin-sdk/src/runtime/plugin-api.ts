@@ -45,15 +45,5 @@ export const exposePluginAPI = () => {
       .default,
     UtilizationBody: require('@console/shared/src/components/dashboard/utilization-card/UtilizationBody')
       .default,
-
-    PageHeading: require('@console/internal/components/utils/headings').PageHeading,
-    HorizontalNav: require('@console/internal/components/utils/horizontal-nav').HorizontalNav,
-    FieldLevelHelp: require('@console/internal/components/utils/field-level-help').FieldLevelHelp,
-
-    ListPage: require('@console/internal/components/factory/list-page').ListPage,
-
-    useMetricDuration: require('@console/shared/src/components/dashboard/duration-hook')
-      .useMetricDuration,
-    Duration: require('@console/shared/src/components/dashboard/duration-hook').Duration,
   };
 };

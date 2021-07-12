@@ -1,6 +1,5 @@
 import {
   UseDashboardPrometheusQuery,
-  WithClassNameProps,
   RecentEventsBodyProps,
   OngoingActivityBodyProps,
   AlertItemProps,
@@ -15,6 +14,9 @@ import {
   UtilizationItemProps,
   DashboardGridProps,
   UtilizationBodyProps,
+  ActivityItemProps,
+  ActivityBodyProps,
+  AlertsBodyProps,
 } from './types';
 
 const MockImpl = () => {
@@ -24,13 +26,13 @@ const MockImpl = () => {
 export const useDashboardPrometheusQuery: UseDashboardPrometheusQuery = MockImpl;
 
 // Actity Card Related Components
-export const ActivityItem: React.FC<WithClassNameProps> = MockImpl;
-export const ActivityBody: React.FC<WithClassNameProps<{ children: React.ReactNode }>> = MockImpl;
-export const RecentEventsBody: React.FC<RecentEventsBodyProps<any>> = MockImpl;
+export const ActivityItem: React.FC<ActivityItemProps> = MockImpl;
+export const ActivityBody: React.FC<ActivityBodyProps> = MockImpl;
+export const RecentEventsBody: React.FC<RecentEventsBodyProps> = MockImpl;
 export const OngoingActivityBody: React.FC<OngoingActivityBodyProps> = MockImpl;
 
 // Alerts Related Components
-export const AlertsBody: React.FC<WithClassNameProps<{ error?: boolean }>> = MockImpl;
+export const AlertsBody: React.FC<AlertsBodyProps> = MockImpl;
 export const AlertItem: React.FC<AlertItemProps> = MockImpl;
 
 // Status Card Related Components

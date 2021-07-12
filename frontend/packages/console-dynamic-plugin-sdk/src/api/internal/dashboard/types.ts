@@ -1,90 +1,54 @@
+import { CardProps, CardBodyProps } from '@patternfly/react-core';
 import {
   K8sResourceCommon,
   FirehoseResult,
   PrometheusResponse,
   HealthState,
   StatusGroupMapper,
-  PrometheusLabels,
 } from '../../../extensions/console-types';
-import { K8sKind } from '../../common-types';
+import { K8sKind, Alert } from '../../common-types';
 
 export type UseDashboardPrometheusQuery<R = { string: string; value: number; unit: string }> = (
   query: string,
-  parser?: () => R,
+  parser?: (arg: number) => R,
 ) => [R, any, number];
 
-export type WithClassNameProps<R = K8sResourceCommon> = R & {
+type WithClassNameProps<R = {}> = R & {
   className?: string;
 };
 
-export type RecentEventsBodyProps<R = K8sResourceCommon> = {
-  events: FirehoseResult<R>;
-  filter?: (arg: R) => boolean;
+export type ActivityItemProps = WithClassNameProps;
+
+export type ActivityBodyProps = WithClassNameProps<{
+  children: React.ReactNode;
+}>;
+
+export type AlertsBodyProps = WithClassNameProps<{
+  error?: boolean;
+}>;
+
+export type RecentEventsBodyProps = {
+  events: FirehoseResult<EventKind[]>;
+  filter?: (arg: EventKind) => boolean;
   moreLink?: string;
 };
 
-type OngoingActvityProps = {
-  resource: K8sResourceCommon;
+type OngoingActvityProps<T> = {
+  resource: T;
 };
 
 export type OngoingActivityBodyProps = {
-  resourceActivities?: (OngoingActvityProps & {
+  resourceActivities?: (OngoingActvityProps<K8sResourceCommon> & {
     timestamp: Date;
-    loader?: Promise<React.ComponentType<Partial<OngoingActvityProps>>>;
-    component?: React.ComponentType<OngoingActvityProps>;
+    loader?: () => Promise<React.ComponentType<Partial<OngoingActvityProps<K8sResourceCommon>>>>;
+    component?: React.ComponentType<Partial<OngoingActvityProps<K8sResourceCommon>>>;
   })[];
   prometheusActivities?: {
     results: PrometheusResponse[];
-    loader?: Promise<React.ComponentType<Partial<OngoingActvityProps>>>;
-    component?: React.ComponentType<OngoingActvityProps>;
+    loader?: () => Promise<React.ComponentType<{ results?: PrometheusResponse[] }>>;
+    component?: React.ComponentType<{ results: PrometheusResponse[] }>;
   }[];
-};
-
-type PrometheusAlert = {
-  activeAt?: string;
-  annotations: PrometheusLabels;
-  labels: PrometheusLabels & {
-    alertname: string;
-    severity?: string;
-  };
-  state: string;
-  value?: number | string;
-};
-
-type Silence = {
-  comment: string;
-  createdBy: string;
-  endsAt: string;
-  firingAlerts: Alert[];
-  id?: string;
-  matchers: { name: string; value: string; isRegex: boolean }[];
-  name?: string;
-  startsAt: string;
-  status?: { state: string };
-  updatedAt?: string;
-};
-
-type Alert = PrometheusAlert & {
-  rule: Rule;
-  silencedBy?: Silence[];
-};
-
-type PrometheusRule = {
-  alerts: PrometheusAlert[];
-  annotations: PrometheusLabels;
-  duration: number;
-  labels: PrometheusLabels & {
-    severity?: string;
-  };
-  name: string;
-  query: string;
-  state: string;
-  type: string;
-};
-
-type Rule = PrometheusRule & {
-  id: string;
-  silencedBy?: Silence[];
+  loaded: boolean;
 };
 
 export type AlertItemProps = {
@@ -100,14 +64,14 @@ export type HealthItemProps = WithClassNameProps<{
   icon?: React.ReactNode;
 }>;
 
-export type DashboardCardProps = {
+export type DashboardCardProps = CardProps & {
   className?: string;
   children: React.ReactNode;
   gradient?: boolean;
 };
 
-export type DashboardCardBodyProps = {
-  className?: string;
+export type DashboardCardBodyProps = CardBodyProps & {
+  classname?: string;
   children: React.ReactNode;
   isLoading?: boolean;
 };
@@ -121,7 +85,7 @@ export type DashboardCardTitleProps = WithClassNameProps<{
 }>;
 
 export type ResourceInventoryItemProps = {
-  resources: [];
+  resources: K8sResourceCommon[];
   additionalResources?: { [key: string]: [] };
   mapper?: StatusGroupMapper;
   kind: K8sKind;
@@ -150,7 +114,6 @@ export type DetailsBodyProps = {
 
 export type UtilizationBodyProps = {
   children: React.ReactNode;
-  timestamps: Date[];
 };
 
 type LIMIT_STATE = 'ERROR' | 'WARN' | 'OK';
@@ -166,20 +129,27 @@ export type TopConsumerPopoverProp = {
   requestedState?: string;
 };
 
+export enum ByteDataTypes {
+  BinaryBytes = 'binaryBytes',
+  BinaryBytesWithoutB = 'binaryBytesWithoutB',
+  DecimalBytes = 'decimalBytes',
+  DecimalBytesWithoutB = 'decimalBytesWithoutB',
+}
+
 export type UtilizationItemProps = {
   title: string;
   utilization?: PrometheusResponse;
   limit?: PrometheusResponse;
   requested?: PrometheusResponse;
   isLoading: boolean;
+  // Todo(bipuladh): Make huamnize type Humanize once unit.js is converted
   humanizeValue: Function;
   query: string | string[];
   error: boolean;
   max?: number;
-  byteDataType?: string;
+  byteDataType?: ByteDataTypes;
   TopConsumerPopover?: React.ComponentType<TopConsumerPopoverProp>;
   setLimitReqState?: (state: { limit: LIMIT_STATE; requested: LIMIT_STATE }) => void;
-  setTimestamps?: (timestamps: Date[]) => void;
 };
 
 type GridDashboarCard = {
@@ -192,3 +162,32 @@ export type DashboardGridProps = {
   leftCards?: GridDashboarCard[];
   rightCards?: GridDashboarCard[];
 };
+
+type EventInvolvedObject = {
+  apiVersion?: string;
+  kind?: string;
+  name?: string;
+  uid?: string;
+  namespace?: string;
+};
+
+export type EventKind = {
+  action?: string;
+  count?: number;
+  type?: string;
+  involvedObject: EventInvolvedObject;
+  message?: string;
+  eventTime?: string;
+  lastTimestamp?: string;
+  firstTimestamp?: string;
+  reason?: string;
+  source: {
+    component: string;
+    host?: string;
+  };
+  series?: {
+    count?: number;
+    lastObservedTime?: string;
+    state?: string;
+  };
+} & K8sResourceCommon;
