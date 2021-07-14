@@ -8,10 +8,13 @@ import { Route, Switch, Link, withRouter, match, matchPath } from 'react-router-
 import { EmptyBox, LoadingBox, StatusBox } from './status-box';
 import { PodsPage } from '../pod';
 import { AsyncComponent } from './async';
-import { K8sResourceKind, K8sResourceCommon } from '../../module/k8s';
+import { K8sResourceKind } from '../../module/k8s';
 import { referenceForModel, referenceFor } from '../../module/k8s/k8s';
 import { useExtensions, HorizontalNavTab, isHorizontalNavTab } from '@console/plugin-sdk';
 import { ResourceMetricsDashboard } from './resource-metrics';
+import { PageComponentProps, Page } from '@console/dynamic-plugin-sdk/src/api/internal';
+
+export { PageComponentProps, Page };
 
 const editYamlComponent = (props) => (
   <AsyncComponent loader={() => import('../edit-yaml').then((c) => c.EditYAML)} obj={props.obj} />
@@ -49,16 +52,6 @@ export class PodsComponent extends React.PureComponent<PodsComponentProps> {
     );
   }
 }
-
-export type Page = {
-  href?: string;
-  path?: string;
-  name?: string;
-  nameKey?: string;
-  component?: React.ComponentType<PageComponentProps>;
-  badge?: React.ReactNode;
-  pageData?: any;
-};
 
 type NavFactory = { [name: string]: (c?: React.ComponentType<any>) => Page };
 export const navFactory: NavFactory = {
@@ -326,17 +319,6 @@ export type HorizontalNavProps = {
   EmptyMsg?: React.ComponentType<any>;
   noStatusBox?: boolean;
   customData?: any;
-};
-
-export type PageComponentProps<R extends K8sResourceCommon = K8sResourceKind> = {
-  filters?: any;
-  selected?: any;
-  match?: any;
-  obj?: R;
-  params?: any;
-  customData?: any;
-  showTitle?: boolean;
-  fieldSelector?: string;
 };
 
 HorizontalNav.displayName = 'HorizontalNav';

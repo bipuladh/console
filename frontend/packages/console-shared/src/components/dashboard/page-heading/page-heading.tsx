@@ -4,20 +4,8 @@
  */
 
 import * as React from 'react';
+import { PageHeadingProps } from '@console/dynamic-plugin-sdk/src/api/internal';
 import { PageHeading as PageHeadingInternal } from '@console/internal/components/utils';
-
-type BreadcrumbObject = {
-  name: string;
-  path: string;
-};
-
-type PageHeadingProps = {
-  breadcrumbs?: BreadcrumbObject[];
-  title?: string | JSX.Element;
-  badge?: React.ReactNode;
-  className?: string;
-  detail?: boolean;
-};
 
 const PageHeading: React.FC<PageHeadingProps> = (props) => <PageHeadingInternal {...props} />;
 

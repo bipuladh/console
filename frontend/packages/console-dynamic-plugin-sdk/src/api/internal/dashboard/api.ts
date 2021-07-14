@@ -19,6 +19,8 @@ import {
   UtilizationDurationDropdownProps,
   UseUtilizationDuration,
   UsePrometheusPoll,
+  PageHeadingProps,
+  HorizontalNavProps,
 } from './types';
 
 const MockImpl = () => {
@@ -59,3 +61,5 @@ export const UtilizationBody: React.FC<UtilizationBodyProps> = MockImpl;
 export const UtilizationDurationDropdown: React.FC<UtilizationDurationDropdownProps> = MockImpl;
 export const useUtilizationDuration: UseUtilizationDuration = MockImpl;
 export const usePrometheusPoll: UsePrometheusPoll = MockImpl;
+export const PageHeading: React.FC<PageHeadingProps> = MockImpl;
+export const HorizontalNav: React.FC<HorizontalNavProps> = MockImpl;

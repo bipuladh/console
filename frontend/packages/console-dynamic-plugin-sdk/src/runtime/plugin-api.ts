@@ -52,5 +52,10 @@ export const exposePluginAPI = () => {
 
     usePrometheusPoll: require('@console/internal/components/graphs/prometheus-poll-hook')
       .usePrometheusPoll,
+
+    PageHeading: require('@console/shared/src/components/dashboard/page-heading/page-heading')
+      .default,
+    HorizontalNav: require('@console/shared/src/components/dashboard/horizontal-nav/horizontal-nav')
+      .default,
   };
 };

@@ -224,3 +224,44 @@ type PrometheusPollProps = {
 };
 
 export type UsePrometheusPoll = (props: PrometheusPollProps) => [PrometheusResponse, any, boolean];
+
+type BreadcrumbObject = {
+  name: string;
+  path: string;
+};
+
+export type PageHeadingProps = {
+  breadcrumbs?: BreadcrumbObject[];
+  title?: string | JSX.Element;
+  badge?: React.ReactNode;
+  className?: string;
+  detail?: boolean;
+};
+
+export type PageComponentProps<R extends K8sResourceCommon = K8sResourceCommon> = {
+  filters?: any;
+  selected?: any;
+  match?: any;
+  obj?: R;
+  params?: any;
+  customData?: any;
+  showTitle?: boolean;
+  fieldSelector?: string;
+};
+
+export type Page = {
+  href?: string;
+  path?: string;
+  name?: string;
+  nameKey?: string;
+  component?: React.ComponentType<PageComponentProps>;
+  badge?: React.ReactNode;
+  pageData?: any;
+};
+
+export type HorizontalNavProps = {
+  match: any;
+  pages: Page[];
+  noStatusBox?: boolean;
+  obj?: K8sResourceCommon;
+};
