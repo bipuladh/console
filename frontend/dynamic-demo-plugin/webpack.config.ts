@@ -31,6 +31,7 @@ const config: webpack.Configuration = {
       },
     ],
   },
+
   plugins: [new ConsoleRemotePlugin()],
   externals: {
     '@console/dynamic-plugin-sdk/api': 'api',
@@ -39,6 +40,9 @@ const config: webpack.Configuration = {
   optimization: {
     chunkIds: 'named',
     minimize: false,
+  },
+  externals: {
+    '@console/dynamic-plugin-sdk/api': 'api',
   },
 };
 

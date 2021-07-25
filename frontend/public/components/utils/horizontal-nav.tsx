@@ -1,17 +1,23 @@
 import * as _ from 'lodash-es';
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { History, Location } from 'history';
 import { useTranslation } from 'react-i18next';
-import { Route, Switch, Link, withRouter, match, matchPath } from 'react-router-dom';
+import { Route, Switch, Link, withRouter, matchPath, RouteComponentProps } from 'react-router-dom';
 
 import { EmptyBox, LoadingBox, StatusBox } from './status-box';
 import { PodsPage } from '../pod';
 import { AsyncComponent } from './async';
-import { K8sResourceKind, K8sResourceCommon } from '../../module/k8s';
+import { K8sResourceKind } from '../../module/k8s';
 import { referenceForModel, referenceFor } from '../../module/k8s/k8s';
 import { useExtensions, HorizontalNavTab, isHorizontalNavTab } from '@console/plugin-sdk';
 import { ResourceMetricsDashboard } from './resource-metrics';
+import {
+  HorizontalNavProps,
+  NavPage as Page,
+  PageComponentProps,
+} from '@console/dynamic-plugin-sdk/src/api/api';
+
+export { HorizontalNavProps, Page, PageComponentProps };
 
 const editYamlComponent = (props) => (
   <AsyncComponent loader={() => import('../edit-yaml').then((c) => c.EditYAML)} obj={props.obj} />
@@ -49,16 +55,6 @@ export class PodsComponent extends React.PureComponent<PodsComponentProps> {
     );
   }
 }
-
-export type Page = {
-  href?: string;
-  path?: string;
-  name?: string;
-  nameKey?: string;
-  component?: React.ComponentType<PageComponentProps>;
-  badge?: React.ReactNode;
-  pageData?: any;
-};
 
 type NavFactory = { [name: string]: (c?: React.ComponentType<any>) => Page };
 export const navFactory: NavFactory = {
@@ -285,7 +281,7 @@ export const HorizontalNav = React.memo((props: HorizontalNavProps) => {
         />
       );
     };
-    return <Route path={path} exact key={p.nameKey || p.name} render={render} />;
+    return <Route path={path} exact={p.exact ?? true} key={p.nameKey || p.name} render={render} />;
   });
 
   return (
@@ -305,38 +301,10 @@ export type PodsComponentProps = {
   customData?: any;
 };
 
-export type NavBarProps = {
+export type NavBarProps = RouteComponentProps & {
   pages: Page[];
   baseURL: string;
   basePath: string;
-  history: History;
-  location: Location<any>;
-  match: match<any>;
-};
-
-export type HorizontalNavProps = {
-  className?: string;
-  obj?: { loaded: boolean; data: K8sResourceKind };
-  label?: string;
-  pages: Page[];
-  pagesFor?: (obj: K8sResourceKind) => Page[];
-  match: any;
-  resourceKeys?: string[];
-  hideNav?: boolean;
-  EmptyMsg?: React.ComponentType<any>;
-  noStatusBox?: boolean;
-  customData?: any;
-};
-
-export type PageComponentProps<R extends K8sResourceCommon = K8sResourceKind> = {
-  filters?: any;
-  selected?: any;
-  match?: any;
-  obj?: R;
-  params?: any;
-  customData?: any;
-  showTitle?: boolean;
-  fieldSelector?: string;
 };
 
 HorizontalNav.displayName = 'HorizontalNav';

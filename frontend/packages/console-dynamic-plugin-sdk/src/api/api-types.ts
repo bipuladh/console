@@ -43,3 +43,41 @@ export type UseK8sWatchResources = <R extends ResourcesObject>(
 export type UseResolvedExtensions = <E extends Extension>(
   ...typeGuards: ExtensionTypeGuard<E>[]
 ) => [ResolvedExtension<E>[], boolean, any[]];
+
+// Horizontal Nav types
+export type PageComponentProps<R extends K8sResourceCommon = K8sResourceCommon> = {
+  filters?: any;
+  selected?: any;
+  match?: any;
+  obj?: R;
+  params?: any;
+  customData?: any;
+  showTitle?: boolean;
+  fieldSelector?: string;
+};
+
+export type NavPage = {
+  href?: string;
+  path?: string;
+  name?: string;
+  nameKey?: string;
+  component?: React.ComponentType<PageComponentProps>;
+  badge?: React.ReactNode;
+  pageData?: any;
+  // to cascade routes
+  exact?: boolean;
+};
+
+export type HorizontalNavProps = {
+  className?: string;
+  obj?: { loaded: boolean; data: K8sResourceCommon };
+  label?: string;
+  pages: NavPage[];
+  pagesFor?: (obj: K8sResourceCommon) => NavPage[];
+  match: any;
+  resourceKeys?: string[];
+  hideNav?: boolean;
+  EmptyMsg?: React.ComponentType<any>;
+  noStatusBox?: boolean;
+  customData?: any;
+};
