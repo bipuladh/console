@@ -8,6 +8,7 @@ export const exposePluginAPI = () => {
       .useK8sWatchResources,
     useResolvedExtensions: require('@console/dynamic-plugin-sdk/src/api/useResolvedExtensions')
       .useResolvedExtensions,
+    HorizontalNav: require('@console/internal/components/utils/horizontal-nav').HorizontalNav,
   };
   window.internalAPI = {
     AcitivityItem: require('@console/shared/src/components/dashboard/activity-card/ActivityItem')
@@ -52,6 +53,5 @@ export const exposePluginAPI = () => {
 
     usePrometheusPoll: require('@console/internal/components/graphs/prometheus-poll-hook')
       .usePrometheusPoll,
-    HorizontalNav: require('@console/internal/components/utils/horizontal-nav').HorizontalNav,
   };
 };
