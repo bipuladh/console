@@ -38,5 +38,12 @@
       "path": "/test-consumer",
       "component": { "$codeRef": "extensionConsumer.default" }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/example/nav",
+      "component": { "$codeRef": "navPage" }
+    }
   }
 ]

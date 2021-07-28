@@ -1,3 +1,4 @@
+import { match, RouteComponentProps } from 'react-router-dom';
 import { K8sResourceCommon, K8sResourceKindReference, Selector } from '../extensions/console-types';
 import { Extension, ExtensionTypeGuard } from '../types';
 import { ResolvedExtension } from './common-types';
@@ -43,3 +44,18 @@ export type UseK8sWatchResources = <R extends ResourcesObject>(
 export type UseResolvedExtensions = <E extends Extension>(
   ...typeGuards: ExtensionTypeGuard<E>[]
 ) => [ResolvedExtension<E>[], boolean, any[]];
+
+/* Horizontal Nav Types */
+export type NavPage = {
+  href?: string;
+  name?: string;
+  component?: React.ComponentType<RouteComponentProps>;
+  // use this to cascade routes under the page
+  exact?: boolean;
+};
+
+export type HorizontalNavFacadeProps = {
+  resource?: K8sResourceCommon;
+  pages: NavPage[];
+  match: match;
+};

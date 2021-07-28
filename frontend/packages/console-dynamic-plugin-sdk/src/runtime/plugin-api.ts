@@ -8,6 +8,7 @@ export const exposePluginAPI = () => {
       .useK8sWatchResources,
     useResolvedExtensions: require('@console/dynamic-plugin-sdk/src/api/useResolvedExtensions')
       .useResolvedExtensions,
+    HorizontalNav: require('@console/internal/components/utils/horizontal-nav').HorizontalNavFacade,
   };
   window.internalAPI = {
     AcitivityItem: require('@console/shared/src/components/dashboard/activity-card/ActivityItem')
