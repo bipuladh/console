@@ -202,5 +202,15 @@
         "$codeRef": "bcCreate.default"
       }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/testsystem",
+      "exact": true,
+      "component": {
+        "$codeRef": "ssList.default"
+      }
+    }
   }
 ]

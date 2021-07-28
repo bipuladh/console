@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { Kebab, ResourceKebab } from '@console/internal/components/utils';
@@ -40,14 +41,24 @@ const tableColumnClasses = [
   Kebab.columnClass,
 ];
 
-const SystemTableRow: RowFunction<StorageSystemKind> = ({ obj, index, key, style, customData }) => {
-  const { t } = useTranslation();
+type RowCustomData = {
+  tFunction: TFunction;
+  metrics: SystemMetrics;
+};
+
+const SystemTableRow: RowFunction<StorageSystemKind, RowCustomData> = ({
+  obj,
+  index,
+  key,
+  style,
+  customData,
+}) => {
   const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = obj.spec.name;
 
   const { rawCapacity, usedCapacity, iops, throughput, latency } =
-    (customData as SystemMetrics)?.metrics?.[systemName] || {};
+    customData?.metrics?.[systemName] || {};
 
   return (
     <TableRow id={obj.metadata.uid} index={index} trKey={key} style={style}>
@@ -69,7 +80,7 @@ const SystemTableRow: RowFunction<StorageSystemKind> = ({ obj, index, key, style
           actions={getActions(systemKind)}
           resource={obj}
           kind={referenceForModel(StorageSystemModel)}
-          customData={{ tFunction: t }}
+          customData={{ tFunction: customData.tFunction }}
         />
       </TableData>
     </TableRow>
@@ -144,7 +155,7 @@ const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
   return (
     <Table
       {...props}
-      customData={normalizedMetrics}
+      customData={{ metrics: normalizedMetrics, tFunction: t }}
       aria-label={t('ceph-storage-plugin~Storage Systems')}
       Header={Header}
       Row={SystemTableRow}

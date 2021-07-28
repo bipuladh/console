@@ -820,7 +820,7 @@ const plugin: Plugin<ConsumedExtensions> = [
       page: {
         // t('ceph-storage-plugin~Backing Store')
         name: '%ceph-storage-plugin~Backing Store%',
-        href: 'resource/noobaa.io~v1alpha1~BucketClass',
+        href: 'resource/noobaa.io~v1alpha1~BackingStore',
       },
       loader: async () =>
         (
@@ -846,7 +846,7 @@ const plugin: Plugin<ConsumedExtensions> = [
           await import(
             './components/odf-resources/resource-list-page' /* webpackChunkName: "odf-system-list" */
           )
-        ).BackingStoreListPage,
+        ).BucketClassListPage,
     },
   },
   // Adding this Extension because dynamic endpoint is not avbl
@@ -865,7 +865,7 @@ const plugin: Plugin<ConsumedExtensions> = [
           await import(
             './components/odf-resources/resource-list-page' /* webpackChunkName: "odf-system-list" */
           )
-        ).BackingStoreListPage,
+        ).NamespaceStoreListPage,
     },
   },
 ];

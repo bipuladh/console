@@ -10,14 +10,12 @@ export const getGVK = (label: string) => {
 };
 
 export type SystemMetrics = {
-  metrics: {
-    [systeName: string]: {
-      rawCapacity: HumanizeResult;
-      usedCapacity: HumanizeResult;
-      iops: HumanizeResult;
-      throughput: HumanizeResult;
-      latency: HumanizeResult;
-    };
+  [systeName: string]: {
+    rawCapacity: HumanizeResult;
+    usedCapacity: HumanizeResult;
+    iops: HumanizeResult;
+    throughput: HumanizeResult;
+    latency: HumanizeResult;
   };
 };
 
@@ -27,7 +25,7 @@ type MetricNormalize = (
   rawCapacity: PrometheusResponse,
   usedCapacity: PrometheusResponse,
   iops: PrometheusResponse,
-) => SystemMetrics['metrics'];
+) => SystemMetrics;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const normalizeMetrics: MetricNormalize = (
@@ -43,7 +41,5 @@ export const normalizeMetrics: MetricNormalize = (
   _iops,
 ) => {
   // Todo(bipuladh): Add parsing logic for above items
-  return {
-    metrics: {} as any,
-  };
+  return {} as any;
 };
