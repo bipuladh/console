@@ -6,7 +6,7 @@ import { resolvePath, relativePath } from './utils/path';
 
 const createPackageJson = (packagePath: string) => {
   const packageJson = readPkg.sync({ normalize: false });
-  packageJson.name = '@openshift-console/dynamic-plugin-sdk';
+  packageJson.name = 'badhikar-dynamic-plugin-sdk';
   delete packageJson.private;
   packageJson.license = 'Apache-2.0';
   packageJson.main = 'lib/extensions/index.js';
