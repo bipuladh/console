@@ -15,7 +15,7 @@ import {
   referenceForModel,
   FirehoseResourcesResult,
 } from '@console/internal/module/k8s';
-import { StatusIcon } from '@console/shared';
+import { Status } from '@console/shared';
 import { sortable } from '@patternfly/react-table';
 import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager';
 import { usePrometheusPoll } from '@console/internal/components/graphs/prometheus-poll-hook';
@@ -28,6 +28,7 @@ import { getActions } from './actions';
 import { StorageSystemModel } from '../../models';
 import { StorageSystemKind } from '../../types';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
+import { CEPH_STORAGE_NAMESPACE } from '../../constants';
 
 const tableColumnClasses = [
   'pf-u-w-25-on-xl',
@@ -41,29 +42,28 @@ const tableColumnClasses = [
 ];
 
 const SystemTableRow: RowFunction<StorageSystemKind> = ({ obj, index, key, style, customData }) => {
-  const { t } = useTranslation();
   const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
-  const systemName = obj.spec.name;
+  const providerName = obj.spec.name;
+  const systemName = obj?.metadata?.name;
+  const { normalizedMetrics, t } = customData;
 
   const { rawCapacity, usedCapacity, iops, throughput, latency } =
-    (customData as SystemMetrics)?.metrics?.[systemName] || {};
+    (normalizedMetrics as SystemMetrics)?.[systemName] || {};
 
   return (
     <TableRow id={obj.metadata.uid} index={index} trKey={key} style={style}>
       <TableData className={tableColumnClasses[0]}>
-        <ODFSystemLink kind={systemKind} name={systemName} />
+        <ODFSystemLink kind={systemKind} systemName={systemName} providerName={providerName} />
       </TableData>
       <TableData className={tableColumnClasses[1]}>
-        <span>
-          <StatusIcon status={obj?.status?.phase} /> {obj?.status?.phase}
-        </span>
+        <Status status={obj?.metadata?.deletionTimestamp ? 'Terminating' : obj?.status?.phase} />
       </TableData>
-      <TableData className={tableColumnClasses[2]}>{rawCapacity?.string || '-'}</TableData>
-      <TableData className={tableColumnClasses[3]}>{usedCapacity?.string || '-'}</TableData>
-      <TableData className={tableColumnClasses[4]}>{iops?.string || '-'}</TableData>
-      <TableData className={tableColumnClasses[5]}>{throughput?.string || '-'}</TableData>
-      <TableData className={tableColumnClasses[6]}>{latency?.string || '-'}</TableData>
+      <TableData className={tableColumnClasses[2]}>{rawCapacity || '-'}</TableData>
+      <TableData className={tableColumnClasses[3]}>{usedCapacity || '-'}</TableData>
+      <TableData className={tableColumnClasses[4]}>{iops || '-'}</TableData>
+      <TableData className={tableColumnClasses[5]}>{throughput || '-'}</TableData>
+      <TableData className={tableColumnClasses[6]}>{latency || '-'}</TableData>
       <TableData className={tableColumnClasses[7]}>
         <ResourceKebab
           actions={getActions(systemKind)}
@@ -139,12 +139,19 @@ const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
     query: ODF_QUERIES[ODFQueries.USED_CAPACITY],
   });
 
-  const normalizedMetrics = normalizeMetrics(latency, throughput, rawCapacity, usedCapacity, iops);
+  const normalizedMetrics = normalizeMetrics(
+    props.data,
+    latency,
+    throughput,
+    rawCapacity,
+    usedCapacity,
+    iops,
+  );
 
   return (
     <Table
       {...props}
-      customData={normalizedMetrics}
+      customData={{ normalizedMetrics, t }}
       aria-label={t('ceph-storage-plugin~Storage Systems')}
       Header={Header}
       Row={SystemTableRow}
@@ -165,6 +172,7 @@ const StorageSystemListPage: React.FC<RouteComponentProps> = (props) => {
       showTitle={false}
       ListComponent={StorageSystemList}
       kind={referenceForModel(StorageSystemModel)}
+      namespace={CEPH_STORAGE_NAMESPACE}
       canCreate
       createProps={createProps}
     />
@@ -188,6 +196,7 @@ type StorageSystemListProps = {
   labelFilterPlaceholder?: string;
   label?: string;
   staticFilters?: { key: string; value: string }[];
+  data?: StorageSystemKind[];
 };
 
 export default StorageSystemListPage;

@@ -1,5 +1,15 @@
-import { HumanizeResult } from '@console/internal/components/utils';
+import * as _ from 'lodash';
+import {
+  HumanizeResult,
+  humanizeBinaryBytes,
+  humanizeDecimalBytesPerSec,
+} from '@console/internal/components/utils';
 import { PrometheusResponse } from '@console/internal/module/k8s';
+import { StorageSystemKind } from '../../types';
+import {
+  humanizeIOPS,
+  humanizeLatency,
+} from '../dashboards/persistent-internal/utilization-card/utils';
 
 // Operator uses`<kind>.<apiGroup>/<apiVersion>`
 export const getGVK = (label: string) => {
@@ -10,18 +20,17 @@ export const getGVK = (label: string) => {
 };
 
 export type SystemMetrics = {
-  metrics: {
-    [systeName: string]: {
-      rawCapacity: HumanizeResult;
-      usedCapacity: HumanizeResult;
-      iops: HumanizeResult;
-      throughput: HumanizeResult;
-      latency: HumanizeResult;
-    };
+  [systeName: string]: {
+    rawCapacity: HumanizeResult;
+    usedCapacity: HumanizeResult;
+    iops: HumanizeResult;
+    throughput: HumanizeResult;
+    latency: HumanizeResult;
   };
 };
 
 type MetricNormalize = (
+  systems: StorageSystemKind[],
   latency: PrometheusResponse,
   throughput: PrometheusResponse,
   rawCapacity: PrometheusResponse,
@@ -31,19 +40,47 @@ type MetricNormalize = (
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const normalizeMetrics: MetricNormalize = (
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _latency,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _throughput,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _rawCapacity,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _usedCapacity,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _iops,
+  systems,
+  latency,
+  throughput,
+  rawCapacity,
+  usedCapacity,
+  iops,
 ) => {
-  // Todo(bipuladh): Add parsing logic for above items
-  return {
-    metrics: {} as any,
-  };
+  if (
+    _.isEmpty(systems) ||
+    !systems ||
+    !latency ||
+    !throughput ||
+    !rawCapacity ||
+    !usedCapacity ||
+    !iops
+  ) {
+    return {
+      metrics: {} as any,
+    };
+  }
+  return systems.reduce((acc, curr) => {
+    acc[curr.metadata.name] = {
+      rawCapacity: humanizeBinaryBytes(
+        rawCapacity.data.result.find((item) => item?.metric?.managedBy === curr.spec.name)
+          ?.value?.[1],
+      ).string,
+      usedCapacity: humanizeBinaryBytes(
+        usedCapacity.data.result.find((item) => item?.metric?.managedBy === curr.spec.name)
+          ?.value?.[1],
+      ).string,
+      iops: humanizeIOPS(
+        iops.data.result.find((item) => item?.metric?.managedBy === curr.spec.name)?.value?.[1],
+      ).string,
+      throughput: humanizeDecimalBytesPerSec(
+        throughput.data.result.find((item) => item?.metric?.managedBy === curr.spec.name)
+          ?.value?.[1],
+      ).string,
+      latency: humanizeLatency(
+        latency.data.result.find((item) => item?.metric?.managedBy === curr.spec.name)?.value?.[1],
+      ).string,
+    };
+    return acc;
+  }, {} as any);
 };
