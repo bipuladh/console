@@ -5,7 +5,17 @@ import { RemoteEntryModule } from './types';
 /**
  * Vendor modules shared between Console application and its dynamic plugins.
  */
-export const sharedVendorModules = ['react', 'react-router', 'react-router-dom', 'react-helmet'];
+export const sharedVendorModules = [
+  'react',
+  'react-router',
+  'react-router-dom',
+  'react-helmet',
+  '@patternfly/patternfly',
+  '@patternfly/react-charts',
+  '@patternfly/react-core',
+  '@patternfly/react-icons',
+  '@patternfly/react-table',
+];
 
 /**
  * At runtime, Console will override (i.e. enforce Console-bundled implementation of) shared
@@ -19,5 +29,11 @@ export const overrideSharedModules = (entryModule: RemoteEntryModule) => {
     'react-router': async () => () => require('react-router'),
     'react-router-dom': async () => () => require('react-router-dom'),
     'react-helmet': async () => () => require('react-helmet'),
+    // eslint-disable-next-line import/no-unresolved
+    '@patternfly/patternfly': async () => () => require('@patternfly/patternfly'),
+    '@patternfly/react-charts': async () => () => require('@patternfly/react-charts'),
+    '@patternfly/react-core': async () => () => require('@patternfly/react-core'),
+    '@patternfly/react-icons': async () => () => require('@patternfly/react-icons'),
+    '@patternfly/react-table': async () => () => require('@patternfly/react-table'),
   });
 };
